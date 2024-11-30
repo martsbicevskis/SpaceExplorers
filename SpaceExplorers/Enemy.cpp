@@ -1,86 +1,126 @@
+#include "Game.h"
 #include "Enemy.h"
+#include <algorithm>
+#include <cstdlib> // For rand() and srand()
+#include <ctime>   // For time()
 
 std::vector<Enemy> Enemy::enemyList;
+int Enemy::enemiesPerWave = 5; // Initialize the number of enemies per wave
 
-Enemy::Enemy(float speed, float size, sf::Vector2f location)
+Enemy::Enemy(float speed, float size, sf::Vector2f location, float health)
+    : speed(speed), size(size), location(location), health(health), maxHealth(health)
 {
-	this->speed = speed;
-	this->size = size;
-	this->location = location;
-
-	body.setSize(sf::Vector2f(size, size));
-	body.setPosition(location);
-	body.setFillColor(sf::Color::Cyan);
-	body.setOutlineThickness(2);
-	body.setOutlineColor(sf::Color::Blue);
-	enemyList.push_back(*this);
+    body.setSize(sf::Vector2f(size, size));
+    body.setPosition(location);
+    body.setFillColor(sf::Color::Cyan);
+    body.setOutlineThickness(2);
+    body.setOutlineColor(sf::Color::Blue);
+    enemyList.push_back(*this);
 }
 
 float Enemy::trySpawn(float spawnTimer, float spawnTimerMax, float deltaTime)
 {
-	if (spawnTimer >= spawnTimerMax)
-	{
-		new Enemy(100, 20, sf::Vector2f(0.f, 0.f));
-		return -spawnTimerMax;
-	}
-	else
-	{
-		return deltaTime;
-	}
+    if (spawnTimer >= spawnTimerMax)
+    {
+        for (int i = 0; i < enemiesPerWave; ++i)
+        {
+            // Randomly choose one of the four edges of the screen
+            int edge = rand() % 4;
+            sf::Vector2f spawnPosition;
 
+            switch (edge)
+            {
+            case 0: // Top edge
+                spawnPosition = sf::Vector2f(static_cast<float>(rand() % Game::SCREEN_WIDTH), -20.f);
+                break;
+            case 1: // Bottom edge
+                spawnPosition = sf::Vector2f(static_cast<float>(rand() % Game::SCREEN_WIDTH), Game::SCREEN_HEIGHT + 20.f);
+                break;
+            case 2: // Left edge
+                spawnPosition = sf::Vector2f(-20.f, static_cast<float>(rand() % Game::SCREEN_HEIGHT));
+                break;
+            case 3: // Right edge
+                spawnPosition = sf::Vector2f(Game::SCREEN_WIDTH + 20.f, static_cast<float>(rand() % Game::SCREEN_HEIGHT));
+                break;
+            }
 
+            new Enemy(100, 20, spawnPosition);
+        }
+        return -spawnTimerMax;
+    }
+    else
+    {
+        return deltaTime;
+    }
 }
 
 void Enemy::update(float deltaTime, sf::Vector2f playerPosition)
 {
-	float moveDistance = -100.f * deltaTime;
-	for (auto& e : enemyList)
-	{
-		if (e.body.getPosition().x > playerPosition.x)
-			e.body.move(moveDistance, 0.f);
-		if (e.body.getPosition().x < playerPosition.x)
-			e.body.move(-moveDistance, 0.f);
-		if (e.body.getPosition().y > playerPosition.y)
-			e.body.move(0.f, moveDistance);
-		if (e.body.getPosition().y < playerPosition.y)
-			e.body.move(0.f, -moveDistance);
-	}
+    for (auto& e : enemyList)
+    {
+        if (e.body.getPosition().x > playerPosition.x)
+            e.body.move(deltaTime * -(e.speed), 0.f);
+        if (e.body.getPosition().x < playerPosition.x)
+            e.body.move(deltaTime * (e.speed), 0.f);
+        if (e.body.getPosition().y > playerPosition.y)
+            e.body.move(0.f, deltaTime * -(e.speed));
+        if (e.body.getPosition().y < playerPosition.y)
+            e.body.move(0.f, deltaTime * (e.speed));
+    }
 }
 
 void Enemy::hitRemove()
 {
-	for (auto e : Enemy::enemyList)
-	{
-		Enemy::enemyList.erase(std::remove_if(enemyList.begin(), enemyList.end(),
-			[](const Enemy enemy) { return enemy.body.getFillColor() == sf::Color::Transparent; }),
-			enemyList.end());
-	}
+    enemyList.erase(std::remove_if(enemyList.begin(), enemyList.end(),
+        [](const Enemy& enemy) { return enemy.body.getFillColor() == sf::Color::Transparent; }),
+        enemyList.end());
 }
 
-void Enemy::checkPlayerTouch(sf::RectangleShape player)
+float Enemy::checkPlayerTouch(sf::RectangleShape player, float playerHealth)
 {
-	for (auto e : enemyList)
-	{
-		if (e.body.getPosition().x + e.body.getSize().x > player.getPosition().x &&
-			e.body.getPosition().x < player.getPosition().x + player.getSize().x &&
-			e.body.getPosition().y + e.body.getSize().y > player.getPosition().y &&
-			e.body.getPosition().y < player.getPosition().y + player.getSize().y)
-		{
-			std::cout << "rfe3f";
-		}
-	}
+    float damage = 0.f;
+    for (auto& e : enemyList)
+    {
+        if (e.body.getPosition().x + e.body.getSize().x > player.getPosition().x &&
+            e.body.getPosition().x < player.getPosition().x + player.getSize().x &&
+            e.body.getPosition().y + e.body.getSize().y > player.getPosition().y &&
+            e.body.getPosition().y < player.getPosition().y + player.getSize().y)
+        {
+            damage += 0.1f;
+        }
+    }
+    return damage;
 }
 
 void Enemy::draw(sf::RenderWindow& window)
 {
-	window.draw(body);
+    window.draw(body);
+    drawHealthBar(window); // Draw the health bar
 }
-
 
 void Enemy::drawAll(sf::RenderWindow& window)
 {
-	for (auto& e : Enemy::enemyList)
-	{
-		window.draw(e.body);
-	}
+    for (auto& e : enemyList)
+    {
+        e.draw(window);
+    }
+}
+
+void Enemy::drawHealthBar(sf::RenderWindow& window)
+{
+    sf::RectangleShape healthBar;
+    healthBar.setSize(sf::Vector2f(size * (health / maxHealth), 5)); // Scale the health bar based on health
+    healthBar.setFillColor(sf::Color::Red);
+    healthBar.setPosition(body.getPosition().x, body.getPosition().y - 10); // Position above the enemy
+    window.draw(healthBar);
+}
+
+void Enemy::takeDamage(float damage)
+{
+    health -= damage;
+    if (health <= 0)
+    {
+        body.setFillColor(sf::Color::Transparent);
+        body.setOutlineColor(sf::Color::Transparent);
+    }
 }
