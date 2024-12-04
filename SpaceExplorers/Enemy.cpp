@@ -12,9 +12,10 @@ Enemy::Enemy(float speed, float size, sf::Vector2f location, float health)
 {
     body.setSize(sf::Vector2f(size, size));
     body.setPosition(location);
-    body.setFillColor(sf::Color::Cyan);
-    body.setOutlineThickness(2);
-    body.setOutlineColor(sf::Color::Blue);
+    if (!enemyTexture.loadFromFile("enemy.png")) {
+        std::cerr << "Failed to load enemy texture!" << std::endl;
+    }
+	body.setTexture(&enemyTexture);
     enemyList.push_back(*this);
 }
 
@@ -44,7 +45,7 @@ float Enemy::trySpawn(float spawnTimer, float spawnTimerMax, float deltaTime)
                 break;
             }
 
-            new Enemy(100, 20, spawnPosition);
+            new Enemy(25 + rand() % 50, 20, spawnPosition, 10 + rand() % 30);
         }
         return -spawnTimerMax;
     }
@@ -69,12 +70,23 @@ void Enemy::update(float deltaTime, sf::Vector2f playerPosition)
     }
 }
 
-void Enemy::hitRemove()
+int Enemy::hitRemove()
 {
-    enemyList.erase(std::remove_if(enemyList.begin(), enemyList.end(),
-        [](const Enemy& enemy) { return enemy.body.getFillColor() == sf::Color::Transparent; }),
-        enemyList.end());
+    int removedCount = 0;
+
+    auto it = std::remove_if(enemyList.begin(), enemyList.end(),
+        [&removedCount](const Enemy& enemy) {
+            if (enemy.body.getFillColor() == sf::Color::Transparent) {
+                ++removedCount;
+                return true;
+            }
+            return false;
+        });
+    enemyList.erase(it, enemyList.end());
+
+	return removedCount;
 }
+
 
 float Enemy::checkPlayerTouch(sf::RectangleShape player, float playerHealth)
 {
@@ -123,4 +135,12 @@ void Enemy::takeDamage(float damage)
         body.setFillColor(sf::Color::Transparent);
         body.setOutlineColor(sf::Color::Transparent);
     }
+}
+
+void Enemy::manaAbilityDamage()
+{
+	for (auto& e : enemyList)
+	{
+		e.takeDamage(50.0f);
+	}
 }

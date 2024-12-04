@@ -11,8 +11,9 @@ public:
     static float trySpawn(float spawnTimer, float spawnTimerMax, float deltaTime);
     static void update(float deltaTime, sf::Vector2f playerPosition);
     static void drawAll(sf::RenderWindow& window);
-    static void hitRemove();
+    static int hitRemove();
     static float checkPlayerTouch(sf::RectangleShape player, float playerHealth);
+	static void manaAbilityDamage();
     void draw(sf::RenderWindow& window);
     void drawHealthBar(sf::RenderWindow& window); // New method to draw health bar
     void takeDamage(float damage);
@@ -28,6 +29,7 @@ private:
     sf::Vector2f location;
     float health;
     float maxHealth; // Store the maximum health for scaling the health bar
+    sf::Texture enemyTexture;
 };
 
 

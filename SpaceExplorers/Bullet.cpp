@@ -12,11 +12,11 @@ Bullet::Bullet(float speed, float size, sf::Vector2f position, sf::Vector2f targ
     this->position = position;
     this->targetLocation = targetLocation;
 
-    body.setSize(sf::Vector2f(size, size));
+    body.setRadius(size);
     body.setPosition(position);
-    body.setFillColor(sf::Color::Green);
-    body.setOutlineThickness(2);
-    body.setOutlineColor(sf::Color::Blue);
+	body.setFillColor(sf::Color::Green);
+	body.setOutlineThickness(2);
+	body.setOutlineColor(sf::Color::Cyan);
 
     float xMoveDistance = targetLocation.x - (size / 2) - position.x;
     float yMoveDistance = targetLocation.y - (size / 2) - position.y;
@@ -72,9 +72,8 @@ void Bullet::checkRemove(const sf::RenderWindow& window)
         bulletList.end());
 }
 
-int Bullet::checkCollisions(const sf::RenderWindow& window)
+void Bullet::checkCollisions(const sf::RenderWindow& window)
 {
-    float money = 0.f;
     for (auto& e : Enemy::enemyList)
     {
         for (auto& b : Bullet::bulletList)
@@ -82,36 +81,40 @@ int Bullet::checkCollisions(const sf::RenderWindow& window)
             float xDistance = e.body.getPosition().x - b.body.getPosition().x;
             float yDistance = e.body.getPosition().y - b.body.getPosition().y;
 
-            if ((xDistance < b.body.getSize().x && xDistance > -e.body.getSize().x) &&
-                (yDistance < b.body.getSize().y && yDistance > -e.body.getSize().y))
+            if ((xDistance < b.body.getRadius() * 2 && xDistance > -e.body.getSize().x) &&
+                (yDistance < b.body.getRadius() * 2 && yDistance > -e.body.getSize().y))
             {
                 e.takeDamage(10.0f); // Apply damage to the enemy
                 b.body.setFillColor(sf::Color::Transparent);
                 b.body.setOutlineColor(sf::Color::Transparent);
-                money += 1;
             }
         }
     }
-    Bullet::hitRemove();
-    Enemy::hitRemove();
-    return money;
+
 }
 
-void Bullet::hitRemove()
+int Bullet::hitRemove()
 {
-    for (auto b : Bullet::bulletList)
-    {
-        Bullet::bulletList.erase(std::remove_if(bulletList.begin(), bulletList.end(),
-            [](const Bullet bullet) { return bullet.body.getFillColor() == sf::Color::Transparent; }),
-            bulletList.end());
-    }
+    int removedCount = 0;
+
+    auto it = std::remove_if(bulletList.begin(), bulletList.end(),
+        [&removedCount](const Bullet& bullet) {
+            if (bullet.body.getFillColor() == sf::Color::Transparent) {
+                ++removedCount;
+                return true;
+            }
+            return false;
+        });
+    bulletList.erase(it, bulletList.end());
+
+    return removedCount;
 }
 
 float Bullet::trySpawn(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime)
 {
     if (bulletSpawnTimer >= bulletSpawnTimerMax)
     {
-        new Bullet(1000.f, 20.f, playerLocation, static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)));
+        new Bullet(1000.f, 10.f, sf::Vector2f(playerLocation), static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)));
         return -bulletSpawnTimer;
     }
     else

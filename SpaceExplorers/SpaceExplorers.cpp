@@ -1,10 +1,18 @@
 #include "Game.h"
-#include <ctime> // For time()
+#include <ctime>
 
 
 int main() {
-    srand(static_cast<unsigned>(time(0))); // Initialize random seed
+    srand(static_cast<unsigned>(time(0)));
     Game game;
     game.run();
     return 0;
 }
+//Pievienot cenas veikalâ
+//Pievienot fonu
+
+//shotgun
+//bomb shooter
+//stun ability
+
+//Pievienot lîmeòus

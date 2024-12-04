@@ -11,8 +11,8 @@ public:
     static void update(float deltaTime);
     static void drawAll(sf::RenderWindow& window);
     static void checkRemove(const sf::RenderWindow& window);
-    static int checkCollisions(const sf::RenderWindow& window);
-    static void hitRemove();
+    static void checkCollisions(const sf::RenderWindow& window);
+    static int hitRemove();
     static float trySpawn(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime);
     void move(float deltaTime);
     void draw(sf::RenderWindow& window);
@@ -21,11 +21,12 @@ public:
 public:
     static std::vector<Bullet> bulletList;
     sf::Vector2f moveDistance;
-    sf::RectangleShape body;
+    sf::CircleShape body;
 
 private:
     float speed;
     float size;
     sf::Vector2f position;
     sf::Vector2f targetLocation;
+	sf::Texture bulletTexture;
 };
