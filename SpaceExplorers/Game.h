@@ -11,6 +11,7 @@ public:
     void run();
 
 public:
+    //Constant game settings
     static constexpr int SCREEN_WIDTH = 1280;
     static constexpr int SCREEN_HEIGHT = 720;
     static constexpr float defaultPlayerHealth = 100.f;
@@ -19,9 +20,11 @@ public:
     static constexpr int playerSize = 50;
 	static constexpr float defaultBulletSize = 10.f;
 
+	//global variables
     int playerMoney = 0;
     float gameTime = 0;
 
+    //game states
 private:
     enum class GameState { MENU, PLAY, PAUSE, SETTINGS, GAME_OVER, SHOP };
 
@@ -58,6 +61,7 @@ private:
 	sf::Text firingSpeedUpgradeButton;
     sf::Text closeInfoText;
 
+    //Game elements
 	sf::RectangleShape background;
     sf::RectangleShape player;
 	sf::RectangleShape healthBarBorder;
@@ -71,16 +75,19 @@ private:
 
     GameState state;
 
+    //shop costs
     int healthUpgradeCost;
 	int movementSpeedUpgradeCost;
 	int firingSpeedUpgradeCost;
 
+    //player stats 
 	float playerMana;
 	float maxPlayerMana;
     float playerHealth;
     float playerSpeed;
 	float borderDamage;
 
+	//timers
     float enemySpawnTimer;
     float enemySpawnTimerMax;
     float bulletSpawnTimer;
@@ -88,6 +95,7 @@ private:
 
     sf::Clock clock;
 
+	//state updating methods
     void handleMenuInput();
     void handleSettingsInput();
     void handlePauseInput();
@@ -95,6 +103,7 @@ private:
     void handleGameOverInput();
 	void handleShopInput();
 
+	//drawing and updating methods
     void drawHealthBar(sf::RenderWindow& window);
     void drawManaBar(sf::RenderWindow& window);
 	void drawMoneyText(sf::RenderWindow& window);
@@ -102,6 +111,7 @@ private:
 	void activateManaAbility();
     void update(float deltaTime);
 
+	//rendering methods
     void renderMenu();
     void renderSettings();
     void renderPause();

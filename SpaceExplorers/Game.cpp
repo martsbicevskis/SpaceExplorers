@@ -1,7 +1,9 @@
 ﻿#include "Game.h"
 #include <iostream>
 
+// Game constructor (called when the game is created)
 Game::Game() :
+	//initializing the game variables
     window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Ekrāns", sf::Style::Default),
     gameTime(.0f),
     borderDamage(1.0f),
@@ -26,6 +28,7 @@ Game::Game() :
     state(GameState::MENU)
 
 {
+	//initialize the fonts and textures
     if (!font.loadFromFile("arial.ttf")) 
     {
         std::cerr << "Failed to load font!" << std::endl;
@@ -60,7 +63,7 @@ Game::Game() :
     
     moneyText.setPosition(healthBarBorder.getPosition().x, healthBarBorder.getPosition().y + 60);
 
-	// Money Display
+	// Money Display (Game)
     moneyText.setFont(font);
     moneyText.setCharacterSize(30);
     moneyText.setFillColor(sf::Color::Yellow);
@@ -68,7 +71,7 @@ Game::Game() :
     moneyText.setOutlineColor(sf::Color::White);
     moneyText.setPosition(SCREEN_WIDTH - 100, 100);
 
-
+	// Title display (Main Menu)
     title.setFont(font);
     title.setString("Space Explorers");
     title.setCharacterSize(100);
@@ -77,7 +80,7 @@ Game::Game() :
     title.setOutlineColor(sf::Color::Cyan);
     title.setPosition(SCREEN_WIDTH * 0.22, SCREEN_HEIGHT / 8);
 
-    // Play button
+	// Play button (Main Menu)
     playButton.setFont(font);
     playButton.setString("Play");
     playButton.setCharacterSize(50);
@@ -86,7 +89,7 @@ Game::Game() :
     playButton.setOutlineColor(sf::Color::White);
     playButton.setPosition(SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT / 2 - 75);
 
-    // Settings button
+	// Settings button (Main Menu)
     settingsButton.setFont(font);
     settingsButton.setString("Settings");
     settingsButton.setCharacterSize(50);
@@ -95,7 +98,7 @@ Game::Game() :
     settingsButton.setOutlineColor(sf::Color::White);
     settingsButton.setPosition(SCREEN_WIDTH / 2 - 75, SCREEN_HEIGHT / 2);
 
-    // Exit button
+	// Exit button (Main Menu)
     exitButton.setFont(font);
     exitButton.setString("Exit");
     exitButton.setCharacterSize(50);
@@ -104,7 +107,7 @@ Game::Game() :
     exitButton.setOutlineColor(sf::Color::White);
     exitButton.setPosition(SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT / 2 + 75);
 
-    // Back button for Settings
+    // Back button (Settings)
     backButton.setFont(font);
     backButton.setString("Back");
     backButton.setCharacterSize(50);
@@ -113,7 +116,7 @@ Game::Game() :
     backButton.setOutlineColor(sf::Color::White);
     backButton.setPosition(SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT / 2);
 
-    // Pause Menu
+	// Pause Menu (Pause)
     pauseTitle.setFont(font);
     pauseTitle.setString("Game Paused");
     pauseTitle.setCharacterSize(60);
@@ -122,6 +125,7 @@ Game::Game() :
     pauseTitle.setOutlineColor(sf::Color::Cyan);
     pauseTitle.setPosition(SCREEN_WIDTH / 2 - 190, SCREEN_HEIGHT / 2 - 150);
 
+	// Continue button (Pause)
     continueButton.setFont(font);
     continueButton.setString("Continue");
     continueButton.setCharacterSize(50);
@@ -130,6 +134,7 @@ Game::Game() :
     continueButton.setOutlineColor(sf::Color::White);
     continueButton.setPosition(SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 50);
 
+	// Main Menu button (Pause)
     mainMenuButton.setFont(font);
     mainMenuButton.setString("Main Menu");
     mainMenuButton.setCharacterSize(50);
@@ -138,7 +143,7 @@ Game::Game() :
     mainMenuButton.setOutlineColor(sf::Color::White);
     mainMenuButton.setPosition(SCREEN_WIDTH / 2 - 120, SCREEN_HEIGHT / 2 + 50);
 
-    // Game Over Menu
+	// Game Over title (Game Over)
     gameOverTitle.setFont(font);
     gameOverTitle.setString("Game Over!");
     gameOverTitle.setCharacterSize(80);
@@ -147,6 +152,7 @@ Game::Game() :
     gameOverTitle.setOutlineColor(sf::Color::Red);
     gameOverTitle.setPosition(SCREEN_WIDTH * 0.32, SCREEN_HEIGHT / 2 - 180);
 
+	// Restart button (Game Over)
     restartButton.setFont(font);
     restartButton.setString("Restart");
     restartButton.setCharacterSize(50);
@@ -155,6 +161,7 @@ Game::Game() :
     restartButton.setOutlineColor(sf::Color::White);
     restartButton.setPosition(SCREEN_WIDTH / 2 - 90, SCREEN_HEIGHT / 2 - 50);
 
+	// Main Menu button (Game Over)
     gameOverMainMenuButton.setFont(font);
     gameOverMainMenuButton.setString("Main Menu");
     gameOverMainMenuButton.setCharacterSize(50);
@@ -163,6 +170,7 @@ Game::Game() :
     gameOverMainMenuButton.setOutlineColor(sf::Color::White);
     gameOverMainMenuButton.setPosition(SCREEN_WIDTH * 0.4, SCREEN_HEIGHT / 2 + 50);
 
+	// Shop title (Shop)
     shopTitle.setFont(font);
     shopTitle.setString("Shop");
     shopTitle.setCharacterSize(70);
@@ -171,12 +179,14 @@ Game::Game() :
     shopTitle.setOutlineColor(sf::Color::Yellow);
     shopTitle.setPosition(SCREEN_WIDTH / 9 * 4, SCREEN_HEIGHT / 10);
 
+	// Close info text (Shop)
     closeInfoText.setFont(font);
     closeInfoText.setString("[Press 'E' to close]");
     closeInfoText.setCharacterSize(20);
     closeInfoText.setFillColor(sf::Color::White);
     closeInfoText.setPosition(SCREEN_WIDTH / 9 * 4, SCREEN_HEIGHT / 10 - 10);
-
+	
+    // Health Upgrade button (Shop)
 	healthUpgradeButton.setFont(font);
 	healthUpgradeButton.setString("Upgrade Health(" + std::to_string(static_cast<int>(playerHealth)) + ")");
 	healthUpgradeButton.setCharacterSize(50);
@@ -185,6 +195,7 @@ Game::Game() :
 	healthUpgradeButton.setOutlineColor(sf::Color::White);
 	healthUpgradeButton.setPosition(SCREEN_WIDTH / 5, SCREEN_HEIGHT / 2);
 
+	// Movement Speed Upgrade button (Shop)
 	movementSpeedUpgradeButton.setFont(font);
 	movementSpeedUpgradeButton.setString("Upgrade Movement Speed(" + std::to_string(static_cast<int>(playerSpeed)) + ")");
 	movementSpeedUpgradeButton.setCharacterSize(50);
@@ -193,6 +204,7 @@ Game::Game() :
 	movementSpeedUpgradeButton.setOutlineColor(sf::Color::White);
 	movementSpeedUpgradeButton.setPosition(SCREEN_WIDTH / 5, SCREEN_HEIGHT / 2 + 50);
 
+	// Firing Speed Upgrade button (Shop)
 	firingSpeedUpgradeButton.setFont(font);
 	firingSpeedUpgradeButton.setString("Reduce Firing Cooldown(" + std::to_string(static_cast<int>(bulletSpawnTimerMax * 1000)) + " ms)");
 	firingSpeedUpgradeButton.setCharacterSize(50);
@@ -201,6 +213,7 @@ Game::Game() :
     firingSpeedUpgradeButton.setOutlineColor(sf::Color::White);
 	firingSpeedUpgradeButton.setPosition(SCREEN_WIDTH / 5, SCREEN_HEIGHT / 2 + 100);
 
+	// Health Upgrade button cost (Shop)
     healthUpgradeButtonCost.setFont(font);
     healthUpgradeButtonCost.setString(std::to_string(static_cast<int>(healthUpgradeCost)));
     healthUpgradeButtonCost.setCharacterSize(50);
@@ -209,6 +222,7 @@ Game::Game() :
     healthUpgradeButtonCost.setOutlineColor(sf::Color::White);
     healthUpgradeButtonCost.setPosition(SCREEN_WIDTH / 5 * 4, SCREEN_HEIGHT / 2);
 
+	// Movement Speed Upgrade button cost (Shop)
     movementSpeedUpgradeButtonCost.setFont(font);
     movementSpeedUpgradeButtonCost.setString(std::to_string(static_cast<int>(movementSpeedUpgradeCost)));
     movementSpeedUpgradeButtonCost.setCharacterSize(50);
@@ -217,6 +231,7 @@ Game::Game() :
     movementSpeedUpgradeButtonCost.setOutlineColor(sf::Color::Yellow);
     movementSpeedUpgradeButtonCost.setPosition(SCREEN_WIDTH / 5 * 4, SCREEN_HEIGHT / 2 + 50);
 
+	// Firing Speed Upgrade button cost (Shop)
     firingSpeedUpgradeButtonCost.setFont(font);
     firingSpeedUpgradeButtonCost.setString(std::to_string(static_cast<int>(firingSpeedUpgradeCost)));
     firingSpeedUpgradeButtonCost.setCharacterSize(50);
@@ -227,6 +242,7 @@ Game::Game() :
 
 }
 
+// Main Game Loop
 void Game::run()
 {
     while (window.isOpen()) 
@@ -264,6 +280,7 @@ void Game::run()
     }
 }
 
+// Input handling method (Menu)
 void Game::handleMenuInput()
 {
     sf::Event event;
@@ -274,7 +291,6 @@ void Game::handleMenuInput()
             window.close();
         }
 
-        // Detect mouse clicks on buttons
         if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) 
         {
             sf::Vector2f mousePos(static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y));
@@ -320,6 +336,7 @@ void Game::handleMenuInput()
 	}
 }
 
+// Input handling method (Pause)
 void Game::handlePauseInput() 
 {
     sf::Event event;
@@ -333,18 +350,17 @@ void Game::handlePauseInput()
         {
             state = GameState::PLAY;
         }
-        // Detect mouse clicks on Pause Menu buttons
         if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) 
         {
             sf::Vector2f mousePos(static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y));
 
             if (continueButton.getGlobalBounds().contains(mousePos)) 
             {
-                state = GameState::PLAY; // Resume the game
+                state = GameState::PLAY; 
             }
             else if (mainMenuButton.getGlobalBounds().contains(mousePos)) 
             {
-                state = GameState::MENU; // Go back to main menu
+                state = GameState::MENU; 
             }
         }
     }
@@ -367,6 +383,7 @@ void Game::handlePauseInput()
     }
 }
 
+// Input handling method (Game Over)
 void Game::handleGameOverInput() 
 {
     sf::Event event;
@@ -377,14 +394,13 @@ void Game::handleGameOverInput()
             window.close();
         }
 
-        // Detect mouse clicks on Game Over Menu buttons
         if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) 
         {
             sf::Vector2f mousePos(static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y));
 
             if (restartButton.getGlobalBounds().contains(mousePos)) 
             {
-                state = GameState::PLAY; // Restart the game
+                state = GameState::PLAY; 
 				gameTime = .0f;
 				borderDamage = 1.0f;
                 playerHealth = defaultPlayerHealth;
@@ -407,7 +423,7 @@ void Game::handleGameOverInput()
             }
             else if (gameOverMainMenuButton.getGlobalBounds().contains(mousePos)) 
             {
-                state = GameState::MENU; // Go back to main menu
+                state = GameState::MENU; 
             }
         }
     }
@@ -430,6 +446,7 @@ void Game::handleGameOverInput()
 	}
 }
 
+// Input handling method (Shop)
 void Game::handleShopInput()
 {
     sf::Event event;
@@ -444,7 +461,6 @@ void Game::handleShopInput()
             state = GameState::PLAY;
         }
 
-        // Detect mouse clicks on Shop Menu buttons
         if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) 
         {
             sf::Vector2f mousePos(static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y));
@@ -531,7 +547,7 @@ void Game::handleShopInput()
 }
 
 
-
+// Input handling method (Settings)
 void Game::handleSettingsInput() 
 {
     sf::Event event;
@@ -542,14 +558,13 @@ void Game::handleSettingsInput()
             window.close();
         }
 
-        // Detect Back button click
         if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) 
         {
             sf::Vector2f mousePos(static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y));
 
             if (backButton.getGlobalBounds().contains(mousePos)) 
             {
-                state = GameState::MENU; // Return to menu
+                state = GameState::MENU; 
             }
         }
     }
@@ -564,6 +579,7 @@ void Game::handleSettingsInput()
 	}
 }
 
+// Input handling method (Game)
 void Game::handleGameInput(float deltaTime) 
 {
     sf::Event event;
@@ -574,7 +590,6 @@ void Game::handleGameInput(float deltaTime)
             window.close();
         }
 
-        // Pause the game when Esc is pressed
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape)) 
         {
             state = GameState::PAUSE;
@@ -594,7 +609,6 @@ void Game::handleGameInput(float deltaTime)
         }
     }
 
-    // Game-specific input logic (player movement, shooting, etc.)
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) 
     {
         player.move(-playerSpeed * deltaTime, 0.0f);
@@ -612,13 +626,13 @@ void Game::handleGameInput(float deltaTime)
         player.move(0.0f, -playerSpeed * deltaTime);
     }
 
-    // Spawn bullets
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) 
     {
         bulletSpawnTimer += Bullet::trySpawn(sf::Vector2f(player.getPosition().x + (playerSize - defaultBulletSize) / 2, player.getPosition().y + (playerSize - defaultBulletSize) / 2), window, bulletSpawnTimer, bulletSpawnTimerMax, deltaTime);
     }
 }
 
+// Drawing health bar
 void Game::drawHealthBar(sf::RenderWindow& window)
 {
     if (playerHealth > defaultPlayerHealth)
@@ -634,6 +648,7 @@ void Game::drawHealthBar(sf::RenderWindow& window)
 	window.draw(healthBarBorder);
 }
 
+// Drawing mana bar
 void Game::drawManaBar(sf::RenderWindow& window)
 {
     manaBar.setSize(sf::Vector2f(manaBarBorder.getSize().x * (playerMana / maxPlayerMana), manaBar.getSize().y));
@@ -648,6 +663,7 @@ void Game::drawMoneyText(sf::RenderWindow& window)
 	window.draw(moneyText);
 }
 
+// Applying border damage
 float Game::applyBorderDamage()
 {
 	float damage = 0.0f;
@@ -661,6 +677,7 @@ float Game::applyBorderDamage()
 	return damage;
 }
 
+// Executing mana ability
 void Game::activateManaAbility()
 {
 	if (playerMana >= maxPlayerMana)
@@ -670,9 +687,9 @@ void Game::activateManaAbility()
 	}
 }
 
+// Updating the game (in game state)
 void Game::update(float deltaTime) 
 {
-    // Update enemies and bullets
     Enemy::update(deltaTime, player.getPosition());
     playerHealth -= Enemy::checkPlayerTouch(player, playerHealth);
 	playerHealth -= applyBorderDamage();
@@ -699,7 +716,6 @@ void Game::update(float deltaTime)
 		playerMana = maxPlayerMana;
 	}
 
-    // Check for game over
     if (playerHealth <= 0) 
     {
         state = GameState::GAME_OVER;
@@ -708,6 +724,7 @@ void Game::update(float deltaTime)
 	gameTime += deltaTime;
 }
 
+// Rendering GameStates
 void Game::renderMenu() 
 {
     window.clear();
@@ -731,8 +748,6 @@ void Game::renderGame()
 {
     window.clear();
 
-    // Draw game objects
-    //window.draw(planet);
     window.draw(background);
     window.draw(player);
 	drawHealthBar(window);

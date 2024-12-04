@@ -1,12 +1,13 @@
 #include "Game.h"
 #include "Enemy.h"
 #include <algorithm>
-#include <cstdlib> // For rand() and srand()
-#include <ctime>   // For time()
+#include <cstdlib> 
+#include <ctime>  
 
 std::vector<Enemy> Enemy::enemyList;
-int Enemy::enemiesPerWave = 5; // Initialize the number of enemies per wave
+int Enemy::enemiesPerWave = 5; 
 
+//constructor
 Enemy::Enemy(float speed, float size, sf::Vector2f location, float health, bool isBoss)
 	: speed(speed), size(size), location(location), health(health), maxHealth(health), isBoss(isBoss)
 {
@@ -19,28 +20,29 @@ Enemy::Enemy(float speed, float size, sf::Vector2f location, float health, bool 
     enemyList.push_back(*this);
 }
 
+
+//updating the enemy spawn timer and spawning enemies at randomized locations
 float Enemy::trySpawn(float spawnTimer, float spawnTimerMax, float deltaTime)
 {
     if (spawnTimer >= spawnTimerMax)
     {
         for (int i = 0; i < enemiesPerWave; ++i)
         {
-            // Randomly choose one of the four edges of the screen
             int edge = rand() % 4;
             sf::Vector2f spawnPosition;
 
             switch (edge)
             {
-            case 0: // Top edge
+            case 0: 
                 spawnPosition = sf::Vector2f(static_cast<float>(rand() % Game::SCREEN_WIDTH), -20.f);
                 break;
-            case 1: // Bottom edge
+            case 1: 
                 spawnPosition = sf::Vector2f(static_cast<float>(rand() % Game::SCREEN_WIDTH), Game::SCREEN_HEIGHT + 20.f);
                 break;
-            case 2: // Left edge
+            case 2: 
                 spawnPosition = sf::Vector2f(-20.f, static_cast<float>(rand() % Game::SCREEN_HEIGHT));
                 break;
-            case 3: // Right edge
+            case 3:
                 spawnPosition = sf::Vector2f(Game::SCREEN_WIDTH + 20.f, static_cast<float>(rand() % Game::SCREEN_HEIGHT));
                 break;
             }
@@ -55,6 +57,7 @@ float Enemy::trySpawn(float spawnTimer, float spawnTimerMax, float deltaTime)
     }
 }
 
+//moving enemies towards the player
 void Enemy::update(float deltaTime, sf::Vector2f playerPosition)
 {
     for (auto& e : enemyList)
@@ -70,6 +73,7 @@ void Enemy::update(float deltaTime, sf::Vector2f playerPosition)
     }
 }
 
+//removing enemies if they are hit
 int Enemy::hitRemove()
 {
     int removedCount = 0;
@@ -87,7 +91,7 @@ int Enemy::hitRemove()
 	return removedCount;
 }
 
-
+//checking if an enemy has touched the player
 float Enemy::checkPlayerTouch(sf::RectangleShape player, float playerHealth)
 {
     float damage = 0.f;
@@ -104,10 +108,11 @@ float Enemy::checkPlayerTouch(sf::RectangleShape player, float playerHealth)
     return damage;
 }
 
+//drawing the enemies
 void Enemy::draw(sf::RenderWindow& window)
 {
     window.draw(body);
-    drawHealthBar(window); // Draw the health bar
+    drawHealthBar(window);
 }
 
 void Enemy::drawAll(sf::RenderWindow& window)
@@ -118,15 +123,17 @@ void Enemy::drawAll(sf::RenderWindow& window)
     }
 }
 
+//drawing enemy health bar
 void Enemy::drawHealthBar(sf::RenderWindow& window)
 {
     sf::RectangleShape healthBar;
-    healthBar.setSize(sf::Vector2f(size * (health / maxHealth), 5)); // Scale the health bar based on health
+    healthBar.setSize(sf::Vector2f(size * (health / maxHealth), 5)); 
     healthBar.setFillColor(sf::Color::Red);
-    healthBar.setPosition(body.getPosition().x, body.getPosition().y - 10); // Position above the enemy
+    healthBar.setPosition(body.getPosition().x, body.getPosition().y - 10);
     window.draw(healthBar);
 }
 
+//applying damage to the enemy
 void Enemy::takeDamage(float damage)
 {
     health -= damage;
@@ -141,6 +148,7 @@ void Enemy::takeDamage(float damage)
     }
 }
 
+//applying mana ability damage to all enemies
 void Enemy::manaAbilityDamage()
 {
 	for (auto& e : enemyList)
@@ -149,6 +157,7 @@ void Enemy::manaAbilityDamage()
 	}
 }
 
+//checking if there is a boss on the screen
 bool Enemy::isBossAlive() {
     for (const auto& enemy : enemyList) {
         if (enemy.isBoss) {

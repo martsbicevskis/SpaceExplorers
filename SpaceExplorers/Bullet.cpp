@@ -3,8 +3,10 @@
 #include <cstdlib>
 #include <iostream>
 
+//global bullet list
 std::vector<Bullet> Bullet::bulletList;
 
+//constructor
 Bullet::Bullet(float speed, float size, sf::Vector2f position, sf::Vector2f targetLocation)
 {
     this->speed = speed;
@@ -18,6 +20,7 @@ Bullet::Bullet(float speed, float size, sf::Vector2f position, sf::Vector2f targ
 	body.setOutlineThickness(2);
 	body.setOutlineColor(sf::Color::Cyan);
 
+	//calculate the direction for bullets
     float xMoveDistance = targetLocation.x - (size / 2) - position.x;
     float yMoveDistance = targetLocation.y - (size / 2) - position.y;
 
@@ -36,6 +39,7 @@ Bullet::Bullet(float speed, float size, sf::Vector2f position, sf::Vector2f targ
     bulletList.push_back(*this);
 }
 
+//moving the bullets
 void Bullet::update(float deltaTime)
 {
     for (auto& b : bulletList)
@@ -49,6 +53,7 @@ void Bullet::move(float deltaTime)
     body.move(moveDistance * deltaTime * speed);
 }
 
+//drawing the bullets
 void Bullet::draw(sf::RenderWindow& window)
 {
     window.draw(body);
@@ -62,6 +67,7 @@ void Bullet::drawAll(sf::RenderWindow& window)
     }
 }
 
+//removing bullets that are outside the window
 void Bullet::checkRemove(const sf::RenderWindow& window)
 {
     bulletList.erase(std::remove_if(bulletList.begin(), bulletList.end(),
@@ -72,6 +78,7 @@ void Bullet::checkRemove(const sf::RenderWindow& window)
         bulletList.end());
 }
 
+//checking for collisions with enemies
 void Bullet::checkCollisions(const sf::RenderWindow& window)
 {
     for (auto& e : Enemy::enemyList)
@@ -84,7 +91,7 @@ void Bullet::checkCollisions(const sf::RenderWindow& window)
             if ((xDistance < b.body.getRadius() * 2 && xDistance > -e.body.getSize().x) &&
                 (yDistance < b.body.getRadius() * 2 && yDistance > -e.body.getSize().y))
             {
-                e.takeDamage(10.0f); // Apply damage to the enemy
+                e.takeDamage(10.0f); 
                 b.body.setFillColor(sf::Color::Transparent);
                 b.body.setOutlineColor(sf::Color::Transparent);
             }
@@ -93,6 +100,7 @@ void Bullet::checkCollisions(const sf::RenderWindow& window)
 
 }
 
+//removing bullets if they hit enemies
 int Bullet::hitRemove()
 {
     int removedCount = 0;
@@ -110,6 +118,7 @@ int Bullet::hitRemove()
     return removedCount;
 }
 
+//updating the bullet spawn timer and spawning bullets
 float Bullet::trySpawn(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime)
 {
     if (bulletSpawnTimer >= bulletSpawnTimerMax)
@@ -123,6 +132,7 @@ float Bullet::trySpawn(sf::Vector2f playerLocation, sf::RenderWindow& window, fl
     }
 }
 
+//checking if the bullet is inside the window
 bool Bullet::checkInsideBounds(const sf::RenderWindow& window) const
 {
     sf::Vector2f position = body.getPosition();

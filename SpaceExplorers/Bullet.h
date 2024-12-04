@@ -6,8 +6,10 @@
 class Bullet
 {
 public:
+	//constructor
     Bullet(float speed, float size, sf::Vector2f position, sf::Vector2f targetLocation);
 
+	//Bullet functions
     static void update(float deltaTime);
     static void drawAll(sf::RenderWindow& window);
     static void checkRemove(const sf::RenderWindow& window);
@@ -19,11 +21,13 @@ public:
     bool checkInsideBounds(const sf::RenderWindow& window) const;
 
 public:
+	//global variables
     static std::vector<Bullet> bulletList;
     sf::Vector2f moveDistance;
     sf::CircleShape body;
 
 private:
+	//Bullet variables
     float speed;
     float size;
     sf::Vector2f position;
