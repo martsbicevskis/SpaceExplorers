@@ -13,11 +13,11 @@ Game::Game() :
     player(sf::Vector2f(playerSize, playerSize)),
     playerHealth(defaultPlayerHealth),
 	playerSpeed(defaultPlayerSpeed),
-    playerMoney(0),
+    playerMoney(1000),
 	playerMana(0),
 	maxPlayerMana(defaultPlayerManaMax),
-    enemySpawnTimer(4.f),
-    enemySpawnTimerMax(5.f),
+    enemySpawnTimer(2.f),
+    enemySpawnTimerMax(3.f),
     bulletSpawnTimer(0.f),
     bulletSpawnTimerMax(0.2f),
 	healthUpgradeCost(10.f),
@@ -59,8 +59,6 @@ Game::Game() :
     manaBar.setPosition(sf::Vector2f(healthBarBorder.getPosition().x, healthBarBorder.getPosition().y + 40));
     
     moneyText.setPosition(healthBarBorder.getPosition().x, healthBarBorder.getPosition().y + 60);
-
-    planet.setPosition(0, 0);
 
 	// Money Display
     moneyText.setFont(font);
@@ -394,8 +392,8 @@ void Game::handleGameOverInput()
                 playerMoney = 0;
 				playerMana = 0;
 				maxPlayerMana = defaultPlayerManaMax;
-				enemySpawnTimer = 4.f;
-				enemySpawnTimerMax = 5.f;
+				enemySpawnTimer = 2.f;
+				enemySpawnTimerMax = 3.f;
 				bulletSpawnTimer = 0.f;
 				bulletSpawnTimerMax = 0.2f;
                 enemySpawnTimer = 0.f;
@@ -555,6 +553,15 @@ void Game::handleSettingsInput()
             }
         }
     }
+	sf::Vector2f mousePos(static_cast<float>(sf::Mouse::getPosition(window).x), static_cast<float>(sf::Mouse::getPosition(window).y));
+	if (backButton.getGlobalBounds().contains(mousePos))
+	{
+		backButton.setOutlineColor(sf::Color::Green);
+	}
+	else
+	{
+		backButton.setOutlineColor(sf::Color::White);
+	}
 }
 
 void Game::handleGameInput(float deltaTime) 
@@ -579,6 +586,11 @@ void Game::handleGameInput(float deltaTime)
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space)) 
         {
             activateManaAbility();
+        }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z)) {
+            if (!Enemy::isBossAlive()) {
+                new Enemy(50, 100, sf::Vector2f(-SCREEN_WIDTH / 10, SCREEN_HEIGHT / 2), 1000, true);
+            }
         }
     }
 
@@ -665,7 +677,15 @@ void Game::update(float deltaTime)
     playerHealth -= Enemy::checkPlayerTouch(player, playerHealth);
 	playerHealth -= applyBorderDamage();
     enemySpawnTimer += Enemy::trySpawn(enemySpawnTimer, enemySpawnTimerMax, deltaTime);
-	enemySpawnTimerMax = 5.f - (gameTime / 60.f);
+    if (enemySpawnTimerMax > 2.f)
+    {
+        enemySpawnTimerMax = 2.1f - 3 * (gameTime / 60.f);
+    }
+	else if (!Enemy::isBossAlive() && enemySpawnTimerMax != 1.5f)
+	{
+        new Enemy(50, 100, sf::Vector2f(-SCREEN_WIDTH / 10, SCREEN_HEIGHT / 2), 1000, true);
+		enemySpawnTimerMax = 1.5f;
+	}
 
 
     Bullet::update(deltaTime);

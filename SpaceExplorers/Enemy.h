@@ -6,7 +6,7 @@
 class Enemy
 {
 public:
-    Enemy(float speed, float size, sf::Vector2f location, float health = 100.0f);
+    Enemy(float speed, float size, sf::Vector2f location, float health = 100.0f, bool isBoss = false);
 
     static float trySpawn(float spawnTimer, float spawnTimerMax, float deltaTime);
     static void update(float deltaTime, sf::Vector2f playerPosition);
@@ -14,6 +14,7 @@ public:
     static int hitRemove();
     static float checkPlayerTouch(sf::RectangleShape player, float playerHealth);
 	static void manaAbilityDamage();
+	static bool isBossAlive();
     void draw(sf::RenderWindow& window);
     void drawHealthBar(sf::RenderWindow& window); // New method to draw health bar
     void takeDamage(float damage);
@@ -30,6 +31,7 @@ private:
     float health;
     float maxHealth; // Store the maximum health for scaling the health bar
     sf::Texture enemyTexture;
+    bool isBoss;
 };
 
 
