@@ -1,5 +1,6 @@
 #include "Bullet.h"
 #include "Enemy.h"
+#include "Game.h"
 #include <cstdlib>
 #include <iostream>
 
@@ -7,12 +8,13 @@
 std::vector<Bullet> Bullet::bulletList;
 
 //constructor
-Bullet::Bullet(float speed, float size, sf::Vector2f position, sf::Vector2f targetLocation)
+Bullet::Bullet(float speed, float size, sf::Vector2f position, sf::Vector2f targetLocation, bool isExplosive)
 {
     this->speed = speed;
     this->size = size;
     this->position = position;
     this->targetLocation = targetLocation;
+    this->isExplosive = isExplosive;
 
     body.setRadius(size);
     body.setPosition(position);
@@ -47,6 +49,8 @@ void Bullet::update(float deltaTime)
         b.move(deltaTime);
     }
 }
+
+
 
 void Bullet::move(float deltaTime)
 {
@@ -91,7 +95,8 @@ void Bullet::checkCollisions(const sf::RenderWindow& window)
             if ((xDistance < b.body.getRadius() * 2 && xDistance > -e.body.getSize().x) &&
                 (yDistance < b.body.getRadius() * 2 && yDistance > -e.body.getSize().y))
             {
-                e.takeDamage(10.0f); 
+                e.takeDamage(10.0f);
+                if (b.isExplosive) explode(sf::Vector2f(b.body.getPosition().x + b.body.getRadius(), b.body.getPosition().y + b.body.getRadius()));
                 b.body.setFillColor(sf::Color::Transparent);
                 b.body.setOutlineColor(sf::Color::Transparent);
             }
@@ -119,16 +124,61 @@ int Bullet::hitRemove()
 }
 
 //updating the bullet spawn timer and spawning bullets
-float Bullet::trySpawn(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime)
+float Bullet::trySpawnRapid(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime, bool isExplosive)
 {
     if (bulletSpawnTimer >= bulletSpawnTimerMax)
     {
-        new Bullet(1000.f, 10.f, sf::Vector2f(playerLocation), static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)));
+        new Bullet(1000.f, 10.f, sf::Vector2f(playerLocation), static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)), isExplosive);
         return -bulletSpawnTimer;
     }
     else
     {
         return deltatime;
+    }
+}
+
+float Bullet::trySpawnShotgun(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime, bool isExplosive)
+{
+    if (bulletSpawnTimer >= bulletSpawnTimerMax)
+    {
+        new Bullet(1000.f, 10.f, sf::Vector2f(playerLocation), sf::Vector2f(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y), isExplosive);
+        new Bullet(1000.f, 10.f, sf::Vector2f(playerLocation), sf::Vector2f(sf::Mouse::getPosition(window).x - Game::SCREEN_WIDTH / 20, sf::Mouse::getPosition(window).y - Game::SCREEN_HEIGHT / 20), isExplosive);
+        new Bullet(1000.f, 10.f, sf::Vector2f(playerLocation), sf::Vector2f(sf::Mouse::getPosition(window).x + Game::SCREEN_WIDTH / 20, sf::Mouse::getPosition(window).y + Game::SCREEN_HEIGHT / 20), isExplosive);
+
+        return -bulletSpawnTimer;
+    }
+    else
+    {
+        return deltatime;
+    }
+}
+
+float Bullet::trySpawnBomb(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime, bool isExplosive)
+{
+    if (bulletSpawnTimer >= bulletSpawnTimerMax)
+    {
+        new Bullet(1000.f, 10.f, sf::Vector2f(playerLocation), static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)), isExplosive);
+        return -bulletSpawnTimer;
+    }
+    else
+    {
+        return deltatime;
+    }
+}
+
+void Bullet::explode(sf::Vector2f location)
+{
+    for (auto& e : Enemy::enemyList)
+    {
+
+        float xDistance = e.body.getPosition().x + e.body.getSize().x / 2 - location.x;
+        float yDistance = e.body.getPosition().y + e.body.getSize().y / 2 - location.y;
+
+		if (sqrt(xDistance * xDistance + yDistance * yDistance) < 100)
+		{
+			e.takeDamage(20.0f);
+		}
+
     }
 }
 

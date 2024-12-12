@@ -31,7 +31,7 @@ public:
     //game states
 private:
     enum class GameState { MENU, PLAY, PAUSE, SETTINGS, GAME_OVER, SHOP, LEVEL };
-
+    enum class ShotMode { RAPID, SHOTGUN, BOMB };
 
     sf::RenderWindow window;
     sf::Font font;
@@ -92,6 +92,7 @@ private:
 
 
     GameState state;
+    ShotMode shotMode;
 
     //shop costs
     int healthUpgradeCost;

@@ -3,30 +3,31 @@
 
 // Game constructor (called when the game is created)
 Game::Game() :
-	//initializing the game variables
+    //initializing the game variables
     window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Ekrāns", sf::Style::Default),
     gameTime(.0f),
     borderDamage(1.0f),
     planet(50.f),
-	healthBarBorder(sf::Vector2f(100.0f, 20.0f)),
-	manaBarBorder(sf::Vector2f(100.0f, 20.0f)),
-	healthBar(sf::Vector2f(100.0f, 20.0f)),
-	manaBar(sf::Vector2f(100.0f, 20.0f)),
+    healthBarBorder(sf::Vector2f(100.0f, 20.0f)),
+    manaBarBorder(sf::Vector2f(100.0f, 20.0f)),
+    healthBar(sf::Vector2f(100.0f, 20.0f)),
+    manaBar(sf::Vector2f(100.0f, 20.0f)),
     player(sf::Vector2f(playerSize, playerSize)),
     playerHealth(defaultPlayerHealth),
-	playerSpeed(defaultPlayerSpeed),
+    playerSpeed(defaultPlayerSpeed),
     playerMoney(0),
-	playerMana(0),
-	maxPlayerMana(defaultPlayerManaMax),
-	shockwaveRenderTime(0.f),
-	shopOpeningCooldown(0.f),
+    playerMana(0),
+    maxPlayerMana(defaultPlayerManaMax),
+    shockwaveRenderTime(0.f),
+    shopOpeningCooldown(0.f),
     enemySpawnTimer(2.f),
     enemySpawnTimerMax(3.f),
     bulletSpawnTimer(0.f),
     bulletSpawnTimerMax(0.2f),
-	healthUpgradeCost(10.f),
-	movementSpeedUpgradeCost(10.f),
-	firingSpeedUpgradeCost(10.f),
+    healthUpgradeCost(10.f),
+    movementSpeedUpgradeCost(10.f),
+    firingSpeedUpgradeCost(10.f),
+    shotMode(ShotMode::RAPID),
     state(GameState::MENU)
 
 {
@@ -437,10 +438,36 @@ void Game::handleGameInput(float deltaTime)
     {
         player.move(0.0f, -playerSpeed * deltaTime);
     }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num1))
+    {
+        shotMode = ShotMode::RAPID;
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num2))
+    {
+        shotMode = ShotMode::SHOTGUN;
+    }
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num3))
+    {
+        shotMode = ShotMode::BOMB;
+    }
+
 
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) 
     {
-        bulletSpawnTimer += Bullet::trySpawn(sf::Vector2f(player.getPosition().x + (playerSize - defaultBulletSize) / 2, player.getPosition().y + (playerSize - defaultBulletSize) / 2), window, bulletSpawnTimer, bulletSpawnTimerMax, deltaTime);
+        switch (shotMode)
+        {
+        case Game::ShotMode::RAPID:
+            bulletSpawnTimer += Bullet::trySpawnRapid(sf::Vector2f(player.getPosition().x + (playerSize - defaultBulletSize) / 2, player.getPosition().y + (playerSize - defaultBulletSize) / 2), window, bulletSpawnTimer, bulletSpawnTimerMax, deltaTime, false);
+            break;
+        case Game::ShotMode::SHOTGUN:
+            bulletSpawnTimer += Bullet::trySpawnShotgun(sf::Vector2f(player.getPosition().x + (playerSize - defaultBulletSize) / 2, player.getPosition().y + (playerSize - defaultBulletSize) / 2), window, bulletSpawnTimer, bulletSpawnTimerMax, deltaTime, false);
+            break;
+        case Game::ShotMode::BOMB:
+            bulletSpawnTimer += Bullet::trySpawnBomb(sf::Vector2f(player.getPosition().x + (playerSize - defaultBulletSize) / 2, player.getPosition().y + (playerSize - defaultBulletSize) / 2), window, bulletSpawnTimer, bulletSpawnTimerMax, deltaTime, true);
+            break;
+        default:
+            break;
+        }
     }
 	if (shopOpeningCooldown < openingCooldownMax)
 	{
@@ -679,7 +706,7 @@ void Game::initializeTextures()
     {
         std::cerr << "Failed to load shockwave screen outline texture!" << std::endl;
     }
-    if (!levelTabletTexture.loadFromFile("levelTablet.png"))
+    if (!levelTabletTexture.loadFromFile("levelTabletUpscaled.png"))
     {
         std::cerr << "Failed to load tablet texture!" << std::endl;
     }
