@@ -2,8 +2,10 @@
 #define GAME_H
 
 #include <SFML/Graphics.hpp>
+#include <string>
 #include "Enemy.h"
 #include "Bullet.h"
+#include "Ad.h"
 
 class Game {
 public:
@@ -19,6 +21,8 @@ public:
 	static constexpr float defaultPlayerManaMax = 100.f;
     static constexpr int playerSize = 50;
 	static constexpr float defaultBulletSize = 10.f;
+    static constexpr float openingCooldownMax = .2f;
+
 
 	//global variables
     int playerMoney = 0;
@@ -26,7 +30,7 @@ public:
 
     //game states
 private:
-    enum class GameState { MENU, PLAY, PAUSE, SETTINGS, GAME_OVER, SHOP };
+    enum class GameState { MENU, PLAY, PAUSE, SETTINGS, GAME_OVER, SHOP, LEVEL };
 
 
     sf::RenderWindow window;
@@ -63,15 +67,29 @@ private:
 
     //Game elements
 	sf::RectangleShape background;
+	sf::RectangleShape shockwaveScreenOutline;
     sf::RectangleShape player;
 	sf::RectangleShape healthBarBorder;
 	sf::RectangleShape manaBarBorder;
 	sf::RectangleShape healthBar;
 	sf::RectangleShape manaBar;
     sf::CircleShape planet;
+	sf::CircleShape shockwave;
+	sf::Text healthText;
+	sf::Text manaText;
 	sf::Text moneyText;
+	sf::Texture levelTabletTexture;
+	sf::Texture shockwaveTexture;
     sf::Texture playerTexture;
 	sf::Texture backgroundTexture;
+    sf::Texture shockwaveScreenOutlineTexture;
+
+	//Level elements
+    sf::RectangleShape levelTablet;
+    sf::Text levelPlayButton;
+	sf::Text levelBackButton;
+	sf::Text levelTitle;
+
 
     GameState state;
 
@@ -86,6 +104,8 @@ private:
     float playerHealth;
     float playerSpeed;
 	float borderDamage;
+	float shockwaveRenderTime;
+	float shopOpeningCooldown;
 
 	//timers
     float enemySpawnTimer;
@@ -98,15 +118,20 @@ private:
 	//state updating methods
     void handleMenuInput();
     void handleSettingsInput();
-    void handlePauseInput();
+    void handlePauseInput(float deltaTime);
     void handleGameInput(float deltaTime);
     void handleGameOverInput();
-	void handleShopInput();
+	void handleShopInput(float deltaTime);
+	void handleLevelInput();
 
 	//drawing and updating methods
+	void initializeButtons();
+	void initializeTextures();
+	void initializeRectangles();
     void drawHealthBar(sf::RenderWindow& window);
     void drawManaBar(sf::RenderWindow& window);
 	void drawMoneyText(sf::RenderWindow& window);
+	void hightlightHower(sf::Text& button, sf::Vector2f mousePos);
     float applyBorderDamage();
 	void activateManaAbility();
     void update(float deltaTime);
@@ -118,6 +143,7 @@ private:
     void renderGame();
     void renderGameOver();
 	void renderShop();
+	void renderLevel();
 };
 
 #endif

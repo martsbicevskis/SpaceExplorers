@@ -6,6 +6,7 @@
 
 std::vector<Enemy> Enemy::enemyList;
 int Enemy::enemiesPerWave = 5; 
+float Enemy::abilityDamageDistance = 300.f;
 
 //constructor
 Enemy::Enemy(float speed, float size, sf::Vector2f location, float health, bool isBoss)
@@ -149,11 +150,18 @@ void Enemy::takeDamage(float damage)
 }
 
 //applying mana ability damage to all enemies
-void Enemy::manaAbilityDamage()
+void Enemy::manaAbilityDamage(sf::Vector2f playerPosition)
 {
+
 	for (auto& e : enemyList)
 	{
-		e.takeDamage(50.0f);
+		float xDis = playerPosition.x - e.body.getPosition().x;
+		float yDis = playerPosition.y - e.body.getPosition().y;
+
+        if (sqrt(xDis * xDis + yDis * yDis) < abilityDamageDistance)
+        {
+			e.takeDamage(50.0f);
+        }
 	}
 }
 

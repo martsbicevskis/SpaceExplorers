@@ -16,7 +16,7 @@ public:
     static void drawAll(sf::RenderWindow& window);
     static int hitRemove();
     static float checkPlayerTouch(sf::RectangleShape player, float playerHealth);
-	static void manaAbilityDamage();
+	static void manaAbilityDamage(sf::Vector2f playerPosition);
 	static bool isBossAlive();
     void draw(sf::RenderWindow& window);
     void drawHealthBar(sf::RenderWindow& window); 
@@ -26,6 +26,7 @@ public:
 	//global variables
     static std::vector<Enemy> enemyList;
     static int enemiesPerWave; 
+	static float abilityDamageDistance;
     sf::RectangleShape body;
 
 private:

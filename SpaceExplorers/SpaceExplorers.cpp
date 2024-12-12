@@ -16,3 +16,5 @@ int main() {
 //stun ability
 
 //Pievienot lîmeòus
+// Lîmeòu izvçle ir kâ avîzes raksti, kur var pieteities uz misijâm, bet ir arî viltus piemçram ar skibibi toilet
+// Viltus raksti noved uz citâm minispçlçm???
