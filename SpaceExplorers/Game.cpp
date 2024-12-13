@@ -907,6 +907,7 @@ void Game::renderGame()
     window.draw(player);
     Enemy::drawAll(window);
     Bullet::drawAll(window);
+    Particles::drawAll(window);
 	drawHealthBar(window);
 	drawManaBar(window);
 	drawMoneyText(window);

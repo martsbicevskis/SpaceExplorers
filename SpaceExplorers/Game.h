@@ -6,6 +6,7 @@
 #include "Enemy.h"
 #include "Bullet.h"
 #include "Ad.h"
+#include "Particles.h"
 
 class Game {
 public:
