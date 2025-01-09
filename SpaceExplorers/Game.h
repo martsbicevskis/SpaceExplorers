@@ -89,7 +89,11 @@ private:
     sf::RectangleShape levelTablet;
     sf::Text levelPlayButton;
 	sf::Text levelBackButton;
-	sf::Text levelTitle;
+    sf::Text levelPlayButtonEasy;
+    sf::Text levelPlayButtonMedium;
+    sf::Text levelPlayButtonHard;
+    sf::Text levelPlayButtonInfinite;
+
 
 
     GameState state;
@@ -105,11 +109,16 @@ private:
 	float maxPlayerMana;
     float playerHealth;
     float playerSpeed;
+
+    //game stats
 	float borderDamage;
 	float shockwaveRenderTime;
 	float shopOpeningCooldown;
+    int enemiesPerWave;
 
 	//timers
+    float bossSpawnTimer;
+    float bossSpawnTimerMax;
     float enemySpawnTimer;
     float enemySpawnTimerMax;
     float bulletSpawnTimer;

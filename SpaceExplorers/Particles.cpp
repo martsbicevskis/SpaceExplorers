@@ -24,7 +24,7 @@ void Particles::drawAll(sf::RenderWindow& window)
 	}
 }
 
-void Particles::updateExpireTime()
+void Particles::updateExpireTime(float deltaTime)
 {
 
 }
