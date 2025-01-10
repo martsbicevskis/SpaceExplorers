@@ -13,7 +13,7 @@ Enemy::Enemy(float speed, float size, sf::Vector2f location, float health, bool 
 {
     body.setSize(sf::Vector2f(size, size));
     body.setPosition(location);
-    if (!enemyTexture.loadFromFile("enemy.png")) {
+    if (!enemyTexture.loadFromFile("orangeEnemy.png")) {
         std::cerr << "Failed to load enemy texture!" << std::endl;
     }
 	body.setTexture(&enemyTexture);
