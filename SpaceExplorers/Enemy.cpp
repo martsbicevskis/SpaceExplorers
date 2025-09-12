@@ -13,7 +13,7 @@ Enemy::Enemy(float speed, float size, sf::Vector2f location, float health)
 {
     body.setSize(sf::Vector2f(size, size));
     body.setPosition(location);
-    if (!enemyTexture.loadFromFile("enemy.png")) {
+    if (!enemyTexture.loadFromFile("orangeEnemy.png")) {
         std::cerr << "Failed to load enemy texture!" << std::endl;
     }
 	body.setTexture(&enemyTexture);
@@ -22,7 +22,7 @@ Enemy::Enemy(float speed, float size, sf::Vector2f location, float health)
 
 
 //updating the enemy spawn timer and spawning enemies at randomized locations
-float Enemy::trySpawn(float spawnTimer, float spawnTimerMax, int enemiesPerWave, float deltaTime, float gameTime)
+float Enemy::trySpawn(float spawnTimer, float spawnTimerMax, float deltaTime, int enemiesPerWave)
 {
     if (spawnTimer >= spawnTimerMax)
     {

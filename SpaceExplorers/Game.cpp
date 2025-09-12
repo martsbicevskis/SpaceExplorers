@@ -20,9 +20,11 @@ Game::Game() :
     maxPlayerMana(defaultPlayerManaMax),
     shockwaveRenderTime(0.f),
     shopOpeningCooldown(0.f),
-	enemiesPerWave(3),
-    enemySpawnTimer(9.f),
-    enemySpawnTimerMax(10.f),
+    enemiesPerWave(5),
+    bossSpawnTimer(0.f),
+    bossSpawnTimerMax(30.f),
+    enemySpawnTimer(2.f),
+    enemySpawnTimerMax(3.f),
     bulletSpawnTimer(0.f),
     bulletSpawnTimerMax(1.f),
     healthUpgradeCost(10.f),
@@ -191,7 +193,12 @@ void Game::handleGameOverInput()
 				enemySpawnTimer = 9.f;
 				enemySpawnTimerMax = 10.f;
 				bulletSpawnTimer = 0.f;
-				bulletSpawnTimerMax = 1.f;
+				bulletSpawnTimerMax = 0.2f;
+                enemiesPerWave = 5;
+                bossSpawnTimer = 0.f;
+                bossSpawnTimerMax = 30.f;
+                enemySpawnTimer = 0.f;
+                bulletSpawnTimer = 0.f;
 				shockwaveRenderTime = 0.f;
 				shopOpeningCooldown = 0.f;
 				healthUpgradeCost = 10.f;
@@ -669,13 +676,37 @@ void Game::initializeButtons()
 	levelBackButton.setPosition(SCREEN_WIDTH * 0.1, SCREEN_HEIGHT * 0.9);
 
 	//Level Title (Level)
-	levelTitle.setFont(font);
-	levelTitle.setString("Planet 1");
-	levelTitle.setCharacterSize(40);
-	levelTitle.setFillColor(sf::Color::White);
-	levelTitle.setOutlineThickness(2);
-	levelTitle.setOutlineColor(sf::Color::Yellow);
-	levelTitle.setPosition(SCREEN_WIDTH * 0.25, SCREEN_HEIGHT * 0.25);
+	levelPlayButtonEasy.setFont(font);
+    levelPlayButtonEasy.setString("Easy");
+    levelPlayButtonEasy.setCharacterSize(40);
+    levelPlayButtonEasy.setFillColor(sf::Color::White);
+    levelPlayButtonEasy.setOutlineThickness(2);
+    levelPlayButtonEasy.setOutlineColor(sf::Color::Yellow);
+    levelPlayButtonEasy.setPosition(SCREEN_WIDTH * 0.25, SCREEN_HEIGHT * 0.25);
+
+    levelPlayButtonMedium.setFont(font);
+    levelPlayButtonMedium.setString("Medium");
+    levelPlayButtonMedium.setCharacterSize(40);
+    levelPlayButtonMedium.setFillColor(sf::Color::White);
+    levelPlayButtonMedium.setOutlineThickness(2);
+    levelPlayButtonMedium.setOutlineColor(sf::Color::Yellow);
+    levelPlayButtonMedium.setPosition(SCREEN_WIDTH * 0.65, SCREEN_HEIGHT * 0.25);
+
+    levelPlayButtonHard.setFont(font);
+    levelPlayButtonHard.setString("Hard");
+    levelPlayButtonHard.setCharacterSize(40);
+    levelPlayButtonHard.setFillColor(sf::Color::White);
+    levelPlayButtonHard.setOutlineThickness(2);
+    levelPlayButtonHard.setOutlineColor(sf::Color::Yellow);
+    levelPlayButtonHard.setPosition(SCREEN_WIDTH * 0.25, SCREEN_HEIGHT * 0.65);
+
+    levelPlayButtonInfinite.setFont(font);
+    levelPlayButtonInfinite.setString("Infinite");
+    levelPlayButtonInfinite.setCharacterSize(40);
+    levelPlayButtonInfinite.setFillColor(sf::Color::White);
+    levelPlayButtonInfinite.setOutlineThickness(2);
+    levelPlayButtonInfinite.setOutlineColor(sf::Color::Yellow);
+    levelPlayButtonInfinite.setPosition(SCREEN_WIDTH * 0.65, SCREEN_HEIGHT * 0.65);
 
 }
 
@@ -837,11 +868,18 @@ void Game::update(float deltaTime)
     Enemy::update(deltaTime, player.getPosition());
     playerHealth -= Enemy::checkPlayerTouch(player, playerHealth);
 	playerHealth -= applyBorderDamage();
-    enemySpawnTimer += Enemy::trySpawn(enemySpawnTimer, enemySpawnTimerMax, enemiesPerWave, deltaTime, gameTime);
-    if (enemySpawnTimerMax > 2.f)
+    enemySpawnTimer += Enemy::trySpawn(enemySpawnTimer, enemySpawnTimerMax, deltaTime, enemiesPerWave);
+    enemySpawnTimerMax = 4.f - 3 * (gameTime / 60.f);
+    if (bossSpawnTimer >= bossSpawnTimerMax)
     {
-        enemySpawnTimerMax = 6.f - 3 * (gameTime / 60.f);
+        new Enemy(50, 100, sf::Vector2f(-SCREEN_WIDTH / 10, SCREEN_HEIGHT / 2), 1000, true);
+        bossSpawnTimer = 0.f;
     }
+    else
+    {
+        bossSpawnTimer += deltaTime;
+    }
+
 
 
     Bullet::update(deltaTime);
@@ -953,8 +991,11 @@ void Game::renderLevel()
 	window.draw(levelTablet);
 	window.draw(levelBackButton);
 	window.draw(levelPlayButton);
-    window.draw(levelTitle);
-	Ad::drawAll(window);
+    window.draw(levelPlayButtonEasy);
+    window.draw(levelPlayButtonMedium);
+    window.draw(levelPlayButtonHard);
+    window.draw(levelPlayButtonInfinite);
+    Ad::drawAll(window);
 	window.display();
 }
 

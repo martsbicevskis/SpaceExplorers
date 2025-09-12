@@ -12,6 +12,8 @@ public:
 	static std::vector<Particles> particleList;
 	static void drawAll(sf::RenderWindow& window);
 	static void updateExpireTime(float deltaTime);
+	static void remove();
+	void draw(sf::RenderWindow& window);
 
 private:
 	sf::RectangleShape body;
