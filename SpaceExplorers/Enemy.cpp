@@ -24,13 +24,14 @@ Enemy::Enemy(float speed, float size, sf::Vector2f location, float health)
 //updating the enemy spawn timer and spawning enemies at randomized locations
 float Enemy::trySpawn(float spawnTimer, float spawnTimerMax, float deltaTime, int enemiesPerWave)
 {
+
     if (spawnTimer >= spawnTimerMax)
     {
         for (int i = 0; i < enemiesPerWave; ++i)
         {
             int edge = rand() % 4;
             sf::Vector2f spawnPosition;
-
+            
             switch (edge)
             {
             case 0: 
@@ -47,7 +48,7 @@ float Enemy::trySpawn(float spawnTimer, float spawnTimerMax, float deltaTime, in
                 break;
             }
 
-            new Enemy(gameTime * (1 + rand() % 2), 20, spawnPosition, gameTime * (1 + rand() % 2));
+            new Enemy(20 + rand() % 2, 20, spawnPosition, 1 + rand() % 2);
         }
         return -spawnTimerMax;
     }

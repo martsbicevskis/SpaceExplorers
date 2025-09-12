@@ -872,7 +872,7 @@ void Game::update(float deltaTime)
     enemySpawnTimerMax = 4.f - 3 * (gameTime / 60.f);
     if (bossSpawnTimer >= bossSpawnTimerMax)
     {
-        new Enemy(50, 100, sf::Vector2f(-SCREEN_WIDTH / 10, SCREEN_HEIGHT / 2), 1000, true);
+        new Enemy(50, 100, sf::Vector2f(-SCREEN_WIDTH / 10, SCREEN_HEIGHT / 2), 1000);
         bossSpawnTimer = 0.f;
     }
     else
