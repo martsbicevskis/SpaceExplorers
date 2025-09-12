@@ -8,16 +8,15 @@ class Enemy
 public:
 
 	//constructor
-    Enemy(float speed, float size, sf::Vector2f location, float health = 100.0f, bool isBoss = false);
+    Enemy(float speed, float size, sf::Vector2f location, float health = 100.0f);
 
 	//Enemy functions
-    static float trySpawn(float spawnTimer, float spawnTimerMax, float deltaTime);
+    static float trySpawn(float spawnTimer, float spawnTimerMax, int enemiesPerWave, float deltaTime, float gameTime);
     static void update(float deltaTime, sf::Vector2f playerPosition);
     static void drawAll(sf::RenderWindow& window);
     static int hitRemove();
     static float checkPlayerTouch(sf::RectangleShape player, float playerHealth);
 	static void manaAbilityDamage(sf::Vector2f playerPosition);
-	static bool isBossAlive();
     void draw(sf::RenderWindow& window);
     void drawHealthBar(sf::RenderWindow& window); 
     void takeDamage(float damage);
@@ -25,7 +24,6 @@ public:
 public:
 	//global variables
     static std::vector<Enemy> enemyList;
-    static int enemiesPerWave; 
 	static float abilityDamageDistance;
     sf::RectangleShape body;
 
@@ -37,7 +35,6 @@ private:
     float health;
     float maxHealth; 
     sf::Texture enemyTexture;
-    bool isBoss;
 };
 
 

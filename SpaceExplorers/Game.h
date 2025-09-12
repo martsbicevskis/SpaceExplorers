@@ -29,8 +29,8 @@ public:
     int playerMoney = 0;
     float gameTime = 0;
 
-    //game states
 private:
+    //game states
     enum class GameState { MENU, PLAY, PAUSE, SETTINGS, GAME_OVER, SHOP, LEVEL };
     enum class ShotMode { RAPID, SHOTGUN, BOMB };
 
@@ -108,6 +108,7 @@ private:
 	float borderDamage;
 	float shockwaveRenderTime;
 	float shopOpeningCooldown;
+	float enemiesPerWave;
 
 	//timers
     float enemySpawnTimer;

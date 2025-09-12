@@ -5,12 +5,11 @@
 #include <ctime>  
 
 std::vector<Enemy> Enemy::enemyList;
-int Enemy::enemiesPerWave = 5; 
 float Enemy::abilityDamageDistance = 300.f;
 
 //constructor
-Enemy::Enemy(float speed, float size, sf::Vector2f location, float health, bool isBoss)
-	: speed(speed), size(size), location(location), health(health), maxHealth(health), isBoss(isBoss)
+Enemy::Enemy(float speed, float size, sf::Vector2f location, float health)
+	: speed(speed), size(size), location(location), health(health), maxHealth(health)
 {
     body.setSize(sf::Vector2f(size, size));
     body.setPosition(location);
@@ -23,7 +22,7 @@ Enemy::Enemy(float speed, float size, sf::Vector2f location, float health, bool 
 
 
 //updating the enemy spawn timer and spawning enemies at randomized locations
-float Enemy::trySpawn(float spawnTimer, float spawnTimerMax, float deltaTime)
+float Enemy::trySpawn(float spawnTimer, float spawnTimerMax, int enemiesPerWave, float deltaTime, float gameTime)
 {
     if (spawnTimer >= spawnTimerMax)
     {
@@ -48,7 +47,7 @@ float Enemy::trySpawn(float spawnTimer, float spawnTimerMax, float deltaTime)
                 break;
             }
 
-            new Enemy(25 + rand() % 50, 20, spawnPosition, 10 + rand() % 30, false);
+            new Enemy(gameTime * (1 + rand() % 2), 20, spawnPosition, gameTime * (1 + rand() % 2));
         }
         return -spawnTimerMax;
     }
@@ -142,10 +141,6 @@ void Enemy::takeDamage(float damage)
     {
         body.setFillColor(sf::Color::Transparent);
         body.setOutlineColor(sf::Color::Transparent);
-		if (isBoss)
-		{
-			enemiesPerWave += 50;
-		}
     }
 }
 
@@ -163,14 +158,4 @@ void Enemy::manaAbilityDamage(sf::Vector2f playerPosition)
 			e.takeDamage(50.0f);
         }
 	}
-}
-
-//checking if there is a boss on the screen
-bool Enemy::isBossAlive() {
-    for (const auto& enemy : enemyList) {
-        if (enemy.isBoss) {
-            return true;
-        }
-    }
-    return false;
 }

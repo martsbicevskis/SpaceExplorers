@@ -18,3 +18,8 @@ int main() {
 //Pievienot lîmeòus
 // Lîmeòu izvçle ir kâ avîzes raksti, kur var pieteities uz misijâm, bet ir arî viltus piemçram ar skibibi toilet
 // Viltus raksti noved uz citâm minispçlçm???
+
+
+// elo sistçma pret botiem?
+
+// Lai nopirktu jaunus ieroèus vajag retas detaïas

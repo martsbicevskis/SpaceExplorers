@@ -1,40 +1,40 @@
 #include "Particles.h"
-#include <SFML/Graphics.hpp>
 
 std::vector<Particles> Particles::particleList;
 
-Particles::Particles(sf::RectangleShape body, sf::Vector2f position, sf::Vector2f size, sf::Texture texture, float expireTime) :
-	body(body),
-	position(position),
-	size(size),
-	texture(texture),
-	expireTime(expireTime)
+Particles::Particles(sf::Vector2f position, sf::Vector2f size, sf::Texture& texture, float expireTime) :
+    position(position),
+    size(size),
+    texture(texture),
+    expireTime(expireTime)
 {
-	body.setPosition(position);
-	body.setSize(size);
-	body.setTexture(&texture);
-	particleList.push_back(*this);
+    body.setPosition(position);
+    body.setSize(size);
+    body.setTexture(&texture);
+    body.setFillColor(sf::Color::White);
+    particleList.push_back(*this);
 }
 
 void Particles::drawAll(sf::RenderWindow& window)
 {
-	for (auto& p : particleList)
-	{
-		p.draw(window);
-	}
+    for (auto& p : particleList)
+    {
+        window.draw(p.body);
+    }
 }
 
-void Particles::updateExpireTime()
+void Particles::updateExpireTime(float deltaTime)
 {
-
-}
-
-void Particles::remove()
-{
-
-}
-
-void Particles::draw(sf::RenderWindow& window)
-{
-	window.draw(body);
+    for (auto it = particleList.begin(); it != particleList.end();)
+    {
+        it->expireTime -= deltaTime;
+        if (it->expireTime <= 0)
+        {
+            it = particleList.erase(it);
+        }
+        else
+        {
+            ++it;
+        }
+    }
 }

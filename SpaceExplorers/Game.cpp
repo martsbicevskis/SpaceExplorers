@@ -20,10 +20,11 @@ Game::Game() :
     maxPlayerMana(defaultPlayerManaMax),
     shockwaveRenderTime(0.f),
     shopOpeningCooldown(0.f),
-    enemySpawnTimer(2.f),
-    enemySpawnTimerMax(3.f),
+	enemiesPerWave(3),
+    enemySpawnTimer(9.f),
+    enemySpawnTimerMax(10.f),
     bulletSpawnTimer(0.f),
-    bulletSpawnTimerMax(0.2f),
+    bulletSpawnTimerMax(1.f),
     healthUpgradeCost(10.f),
     movementSpeedUpgradeCost(10.f),
     firingSpeedUpgradeCost(10.f),
@@ -186,12 +187,11 @@ void Game::handleGameOverInput()
                 playerMoney = 0;
 				playerMana = 0;
 				maxPlayerMana = defaultPlayerManaMax;
-				enemySpawnTimer = 2.f;
-				enemySpawnTimerMax = 3.f;
+                enemiesPerWave = 3;
+				enemySpawnTimer = 9.f;
+				enemySpawnTimerMax = 10.f;
 				bulletSpawnTimer = 0.f;
-				bulletSpawnTimerMax = 0.2f;
-                enemySpawnTimer = 0.f;
-                bulletSpawnTimer = 0.f;
+				bulletSpawnTimerMax = 1.f;
 				shockwaveRenderTime = 0.f;
 				shopOpeningCooldown = 0.f;
 				healthUpgradeCost = 10.f;
@@ -265,7 +265,7 @@ void Game::handleShopInput(float deltaTime)
                 {
                     playerMoney -= firingSpeedUpgradeCost;
                     firingSpeedUpgradeCost *= 1.2;
-                    bulletSpawnTimerMax -= .02f;
+                    bulletSpawnTimerMax *= .5f;
 					firingSpeedUpgradeButtonCost.setString(std::to_string(static_cast<int>(firingSpeedUpgradeCost)));
                 }
             }
@@ -414,11 +414,6 @@ void Game::handleGameInput(float deltaTime)
         {
             activateManaAbility();
 
-        }
-        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Z)) {
-            if (!Enemy::isBossAlive()) {
-                new Enemy(50, 100, sf::Vector2f(-SCREEN_WIDTH / 10, SCREEN_HEIGHT / 2), 1000, true);
-            }
         }
     }
 
@@ -842,16 +837,11 @@ void Game::update(float deltaTime)
     Enemy::update(deltaTime, player.getPosition());
     playerHealth -= Enemy::checkPlayerTouch(player, playerHealth);
 	playerHealth -= applyBorderDamage();
-    enemySpawnTimer += Enemy::trySpawn(enemySpawnTimer, enemySpawnTimerMax, deltaTime);
+    enemySpawnTimer += Enemy::trySpawn(enemySpawnTimer, enemySpawnTimerMax, enemiesPerWave, deltaTime, gameTime);
     if (enemySpawnTimerMax > 2.f)
     {
-        enemySpawnTimerMax = 4.f - 3 * (gameTime / 60.f);
+        enemySpawnTimerMax = 6.f - 3 * (gameTime / 60.f);
     }
-	else if (!Enemy::isBossAlive() && enemySpawnTimerMax != 1.5f)
-	{
-        new Enemy(50, 100, sf::Vector2f(-SCREEN_WIDTH / 10, SCREEN_HEIGHT / 2), 1000, true);
-		enemySpawnTimerMax = 1.5f;
-	}
 
 
     Bullet::update(deltaTime);
