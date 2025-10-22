@@ -20,16 +20,19 @@ Game::Game() :
     maxPlayerMana(defaultPlayerManaMax),
     shockwaveRenderTime(0.f),
     shopOpeningCooldown(0.f),
+    difficulty(1.f),
     enemiesPerWave(5),
     bossSpawnTimer(0.f),
     bossSpawnTimerMax(30.f),
     enemySpawnTimer(2.f),
     enemySpawnTimerMax(3.f),
     bulletSpawnTimer(0.f),
-    bulletSpawnTimerMax(1.f),
+    bulletSpawnTimerMax(0.5f),
     healthUpgradeCost(10.f),
     movementSpeedUpgradeCost(10.f),
     firingSpeedUpgradeCost(10.f),
+    winningSurvivalTime(70.f),
+    continueAvailable(false),
     shotMode(ShotMode::RAPID),
     state(GameState::MENU)
 
@@ -102,11 +105,16 @@ void Game::handleMenuInput()
                 Ad(2, shockwaveScreenOutlineTexture);
                 Ad(3, shockwaveScreenOutlineTexture);
                 Ad(4, shockwaveScreenOutlineTexture);
+
                 state = GameState::LEVEL;
             }
-            else if (settingsButton.getGlobalBounds().contains(mousePos)) 
+            else if (menuContinueButton.getGlobalBounds().contains(mousePos) && continueAvailable)
             {
-                state = GameState::SETTINGS; 
+                state = GameState::PLAY;
+            }
+            else if (settingsButton.getGlobalBounds().contains(mousePos))
+            {
+                state = GameState::SETTINGS;
             }
             else if (exitButton.getGlobalBounds().contains(mousePos)) 
             {
@@ -116,6 +124,7 @@ void Game::handleMenuInput()
     }
 	sf::Vector2f mousePos(static_cast<float>(sf::Mouse::getPosition(window).x), static_cast<float>(sf::Mouse::getPosition(window).y));
 
+    if (continueAvailable) hightlightHower(menuContinueButton, mousePos);
 	hightlightHower(playButton, mousePos);
 	hightlightHower(settingsButton, mousePos);
 	hightlightHower(exitButton, mousePos);
@@ -181,35 +190,8 @@ void Game::handleGameOverInput()
 
             if (restartButton.getGlobalBounds().contains(mousePos)) 
             {
+                resetGameSettings();
                 state = GameState::PLAY; 
-				gameTime = .0f;
-				borderDamage = 1.0f;
-                playerHealth = defaultPlayerHealth;
-				playerSpeed = defaultPlayerSpeed;
-                playerMoney = 0;
-				playerMana = 0;
-				maxPlayerMana = defaultPlayerManaMax;
-                enemiesPerWave = 3;
-				enemySpawnTimer = 9.f;
-				enemySpawnTimerMax = 10.f;
-				bulletSpawnTimer = 0.f;
-				bulletSpawnTimerMax = 0.2f;
-                enemiesPerWave = 5;
-                bossSpawnTimer = 0.f;
-                bossSpawnTimerMax = 30.f;
-                enemySpawnTimer = 0.f;
-                bulletSpawnTimer = 0.f;
-				shockwaveRenderTime = 0.f;
-				shopOpeningCooldown = 0.f;
-				healthUpgradeCost = 10.f;
-				movementSpeedUpgradeCost = 10.f;
-				firingSpeedUpgradeCost = 10.f;
-                healthUpgradeButtonCost.setString(std::to_string(static_cast<int>(healthUpgradeCost)));
-                movementSpeedUpgradeButtonCost.setString(std::to_string(static_cast<int>(movementSpeedUpgradeCost)));
-                firingSpeedUpgradeButtonCost.setString(std::to_string(static_cast<int>(firingSpeedUpgradeCost)));
-                player.setPosition(SCREEN_WIDTH / 2 - player.getSize().x / 2, SCREEN_HEIGHT / 2 - player.getSize().y / 2);
-                Enemy::enemyList.clear();
-                Bullet::bulletList.clear();
             }
             else if (gameOverMainMenuButton.getGlobalBounds().contains(mousePos)) 
             {
@@ -352,6 +334,41 @@ void Game::handleLevelInput()
             }
             if (levelPlayButton.getGlobalBounds().contains(mousePos))
             {
+                winningSurvivalTime = 70.f;
+                continueAvailable = true;
+                resetGameSettings();
+                state = GameState::PLAY;
+            }
+            if (levelPlayButtonEasy.getGlobalBounds().contains(mousePos))
+            {
+                difficulty = 1.f;
+                winningSurvivalTime = 70.f;
+                continueAvailable = true;
+                resetGameSettings();
+                state = GameState::PLAY;
+            }
+            if (levelPlayButtonMedium.getGlobalBounds().contains(mousePos))
+            {
+                difficulty = 2.f;
+                winningSurvivalTime = 70.f;
+                continueAvailable = true;
+                resetGameSettings();
+                state = GameState::PLAY;
+            }
+            if (levelPlayButtonHard.getGlobalBounds().contains(mousePos))
+            {
+                difficulty = 3.f;
+                winningSurvivalTime = 70.f;
+                continueAvailable = true;
+                resetGameSettings();
+                state = GameState::PLAY;
+            }
+            if (levelPlayButtonInfinite.getGlobalBounds().contains(mousePos))
+            {
+                difficulty = 3.f;
+                winningSurvivalTime = std::numeric_limits<float>::max();
+                continueAvailable = true;
+                resetGameSettings();
                 state = GameState::PLAY;
             }
         }
@@ -496,14 +513,23 @@ void Game::initializeButtons()
     title.setOutlineColor(sf::Color::Cyan);
     title.setPosition(SCREEN_WIDTH * 0.22, SCREEN_HEIGHT / 8);
 
+    // Continue button (Main Menu)
+    menuContinueButton.setFont(font);
+    menuContinueButton.setString("Continue");
+    menuContinueButton.setCharacterSize(50);
+    menuContinueButton.setFillColor(sf::Color::White);
+    menuContinueButton.setOutlineThickness(2);
+    menuContinueButton.setOutlineColor(sf::Color::White);
+    menuContinueButton.setPosition(SCREEN_WIDTH / 2 - 70, SCREEN_HEIGHT / 2 - 80);
+
     // Play button (Main Menu)
     playButton.setFont(font);
-    playButton.setString("Play");
+    playButton.setString("New Game");
     playButton.setCharacterSize(50);
     playButton.setFillColor(sf::Color::White);
     playButton.setOutlineThickness(2);
     playButton.setOutlineColor(sf::Color::White);
-    playButton.setPosition(SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT / 2 - 75);
+    playButton.setPosition(SCREEN_WIDTH / 2 - 70, SCREEN_HEIGHT / 2 - 0);
 
     // Settings button (Main Menu)
     settingsButton.setFont(font);
@@ -512,7 +538,7 @@ void Game::initializeButtons()
     settingsButton.setFillColor(sf::Color::White);
     settingsButton.setOutlineThickness(2);
     settingsButton.setOutlineColor(sf::Color::White);
-    settingsButton.setPosition(SCREEN_WIDTH / 2 - 75, SCREEN_HEIGHT / 2);
+    settingsButton.setPosition(SCREEN_WIDTH / 2 - 70, SCREEN_HEIGHT / 2 + 80);
 
     // Exit button (Main Menu)
     exitButton.setFont(font);
@@ -521,7 +547,7 @@ void Game::initializeButtons()
     exitButton.setFillColor(sf::Color::White);
     exitButton.setOutlineThickness(2);
     exitButton.setOutlineColor(sf::Color::White);
-    exitButton.setPosition(SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT / 2 + 75);
+    exitButton.setPosition(SCREEN_WIDTH / 2 - 70, SCREEN_HEIGHT / 2 + 160);
 
     // Back button (Settings)
     backButton.setFont(font);
@@ -862,14 +888,49 @@ void Game::activateManaAbility()
 	}
 }
 
+void Game::resetGameSettings()
+{
+    gameTime = .0f;
+    borderDamage = 1.0f;
+    playerHealth = defaultPlayerHealth;
+    playerSpeed = defaultPlayerSpeed;
+    playerMoney = 0;
+    playerMana = 0;
+    maxPlayerMana = defaultPlayerManaMax;
+    enemiesPerWave = 3;
+    enemySpawnTimer = 9.f;
+    enemySpawnTimerMax = 10.f;
+    bulletSpawnTimer = 0.f;
+    bulletSpawnTimerMax = 0.5f;
+    enemiesPerWave = 5;
+    bossSpawnTimer = 0.f;
+    bossSpawnTimerMax = 30.f;
+    enemySpawnTimer = 0.f;
+    shockwaveRenderTime = 0.f;
+    shopOpeningCooldown = 0.f;
+    healthUpgradeCost = 10.f;
+    movementSpeedUpgradeCost = 10.f;
+    firingSpeedUpgradeCost = 10.f;
+    healthUpgradeButtonCost.setString(std::to_string(static_cast<int>(healthUpgradeCost)));
+    movementSpeedUpgradeButtonCost.setString(std::to_string(static_cast<int>(movementSpeedUpgradeCost)));
+    firingSpeedUpgradeButtonCost.setString(std::to_string(static_cast<int>(firingSpeedUpgradeCost)));
+    player.setPosition(SCREEN_WIDTH / 2 - player.getSize().x / 2, SCREEN_HEIGHT / 2 - player.getSize().y / 2);
+    Enemy::enemyList.clear();
+    Bullet::bulletList.clear();
+}
+
 // Updating the game (in game state)
 void Game::update(float deltaTime) 
 {
     Enemy::update(deltaTime, player.getPosition());
     playerHealth -= Enemy::checkPlayerTouch(player, playerHealth);
 	playerHealth -= applyBorderDamage();
-    enemySpawnTimer += Enemy::trySpawn(enemySpawnTimer, enemySpawnTimerMax, deltaTime, enemiesPerWave);
     enemySpawnTimerMax = 4.f - 3 * (gameTime / 60.f);
+    if (gameTime < winningSurvivalTime)
+    {
+        enemySpawnTimer += Enemy::trySpawn(enemySpawnTimer, enemySpawnTimerMax, deltaTime, enemiesPerWave, difficulty, gameTime);
+    }
+
     if (bossSpawnTimer >= bossSpawnTimerMax)
     {
         new Enemy(50, 100, sf::Vector2f(-SCREEN_WIDTH / 10, SCREEN_HEIGHT / 2), 1000);
@@ -879,8 +940,13 @@ void Game::update(float deltaTime)
     {
         bossSpawnTimer += deltaTime;
     }
-
-
+    if (gameTime >= winningSurvivalTime && Enemy::enemyList.size() == 0 || sf::Keyboard::isKeyPressed(sf::Keyboard::F))
+    {
+        gameOverTitle.setOutlineColor(sf::Color::Green);
+        gameOverTitle.setString("You win!");
+        gameOverTitle.setPosition(SCREEN_WIDTH * 0.38, SCREEN_HEIGHT / 2 - 180);
+        state = GameState::GAME_OVER;
+    }
 
     Bullet::update(deltaTime);
     Bullet::checkRemove(window);
@@ -895,6 +961,9 @@ void Game::update(float deltaTime)
 
     if (playerHealth <= 0) 
     {
+        gameOverTitle.setOutlineColor(sf::Color::Red);
+        gameOverTitle.setString("Game Over!");
+        gameOverTitle.setPosition(SCREEN_WIDTH * 0.33, SCREEN_HEIGHT / 2 - 180);
         state = GameState::GAME_OVER;
     }
 
@@ -905,11 +974,16 @@ void Game::update(float deltaTime)
 void Game::renderMenu() 
 {
     window.clear();
+
+    menuContinueButton.setFillColor(continueAvailable ? sf::Color::White : sf::Color::Black);
+
 	window.draw(background);
 	window.draw(title);
+    window.draw(menuContinueButton);
     window.draw(playButton);
     window.draw(settingsButton);
     window.draw(exitButton);
+
     window.display();
 }
 

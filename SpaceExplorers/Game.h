@@ -39,6 +39,7 @@ private:
 
     // Main Menu
     sf::Text playButton;
+    sf::Text menuContinueButton;
     sf::Text settingsButton;
     sf::Text exitButton;
 	sf::Text title;
@@ -115,6 +116,8 @@ private:
 	float shockwaveRenderTime;
 	float shopOpeningCooldown;
     int enemiesPerWave;
+    float difficulty;
+    bool continueAvailable;
 
 	//timers
     float bossSpawnTimer;
@@ -123,6 +126,7 @@ private:
     float enemySpawnTimerMax;
     float bulletSpawnTimer;
     float bulletSpawnTimerMax;
+    float winningSurvivalTime;
 
     sf::Clock clock;
 
@@ -145,6 +149,7 @@ private:
 	void hightlightHower(sf::Text& button, sf::Vector2f mousePos);
     float applyBorderDamage();
 	void activateManaAbility();
+    void resetGameSettings();
     void update(float deltaTime);
 
 	//rendering methods

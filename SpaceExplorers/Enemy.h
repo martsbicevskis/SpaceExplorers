@@ -11,7 +11,7 @@ public:
     Enemy(float speed, float size, sf::Vector2f location, float health = 100.0f);
 
 	//Enemy functions
-    static float trySpawn(float spawnTimer, float spawnTimerMax, float deltaTime, int enemiesPerWave);
+    static float trySpawn(float spawnTimer, float spawnTimerMax, float deltaTime, int enemiesPerWave, float difficulty, float gameTime);
     static void update(float deltaTime, sf::Vector2f playerPosition);
     static void drawAll(sf::RenderWindow& window);
     static int hitRemove();
