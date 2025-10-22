@@ -1,0 +1,7 @@
+galvenās izvēlnes skats paliek tāds pats
+līmeņu skatā ir nevis grūtības pakāpes, bet misijas, kur katra misija sastāv no vairākām "dienām" jeb līmeņiem
+veikalu vairs nevar atvērt spēles laikā, bet tikai starp misijām
+spēlētājs var nopirkt jaunus kosmosa kuģus, uzlabojumus tiem
+ja spēlētājs zaudē kādā no misijām, tad viņš zaudē arī kosmosa kuģi un tā uzlabojumus
+spēlētājam tiek piešķirti neierobežoti pamata modeļa (default) kosmosa kuģi
+spēles progress jāsaglabā, pat ja spēle tiek aizvērta?  
