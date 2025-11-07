@@ -13,6 +13,8 @@ public:
 private:
 	int slot;
 	sf::Texture adTexture;
+
+public:
 	sf::RectangleShape body;
 };
 

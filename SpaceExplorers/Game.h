@@ -31,7 +31,7 @@ public:
 
 private:
     //game states
-    enum class GameState { MENU, PLAY, PAUSE, SETTINGS, GAME_OVER, SHOP, LEVEL };
+    enum class GameState { MENU, PLAY, INSTRUCTIONS, PAUSE, SETTINGS, GAME_OVER, SHOP, LEVEL };
     enum class ShotMode { RAPID, SHOTGUN, BOMB };
 
     sf::RenderWindow window;
@@ -40,6 +40,7 @@ private:
     // Main Menu
     sf::Text playButton;
     sf::Text menuContinueButton;
+    sf::Text controlsButton;
     sf::Text settingsButton;
     sf::Text exitButton;
 	sf::Text title;
@@ -67,6 +68,18 @@ private:
 	sf::Text firingSpeedUpgradeButton;
     sf::Text closeInfoText;
 
+    // Instructions
+    sf::Text instrAiming;
+    sf::Text instrControls;
+    sf::Text instrHealthBar;
+    sf::Text instrManaAbility;
+    sf::Text instrManaBar;
+    sf::Text instrMovement;
+    sf::Text instrPauseGame;
+    sf::Text instrExitButton;
+    sf::Text instrShooting;
+    sf::Text instrShop;
+
     //Game elements
 	sf::RectangleShape background;
 	sf::RectangleShape shockwaveScreenOutline;
@@ -88,7 +101,6 @@ private:
 
 	//Level elements
     sf::RectangleShape levelTablet;
-    sf::Text levelPlayButton;
 	sf::Text levelBackButton;
     sf::Text levelPlayButtonEasy;
     sf::Text levelPlayButtonMedium;
@@ -134,6 +146,7 @@ private:
     void handleMenuInput();
     void handleSettingsInput();
     void handlePauseInput(float deltaTime);
+    void handleInstructionsInput();
     void handleGameInput(float deltaTime);
     void handleGameOverInput();
 	void handleShopInput(float deltaTime);
@@ -156,6 +169,7 @@ private:
     void renderMenu();
     void renderSettings();
     void renderPause();
+    void renderInstructions();
     void renderGame();
     void renderGameOver();
 	void renderShop();
