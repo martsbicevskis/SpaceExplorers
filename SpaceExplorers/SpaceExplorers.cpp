@@ -23,3 +23,13 @@ int main() {
 // elo sistçma pret botiem?
 
 // Lai nopirktu jaunus ieroèus vajag retas detaïas
+
+/*
+* ========================================================
+*  Jautâjums, vai spçli vajag padarît sareþìîtâku pçc bûtîbas?
+* 
+* Pievienot skinus?
+* Pievienot sasniegumus (piemçram, dabût 10000$, uzvarçt neizmantojot veikalu utt.)
+* Ienaidnieki izmet naudu, kas spçlçtâjam jâsavâc no zemes?
+* 
+*/
