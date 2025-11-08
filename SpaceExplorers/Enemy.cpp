@@ -96,7 +96,7 @@ int Enemy::hitRemove()
 float Enemy::checkPlayerTouch(sf::RectangleShape player, float playerHealth)
 {
     float damage = 0.f;
-    for (auto& e : enemyList)
+    for (const auto& e : enemyList)
     {
         if (e.body.getPosition().x + e.body.getSize().x > player.getPosition().x &&
             e.body.getPosition().x < player.getPosition().x + player.getSize().x &&
