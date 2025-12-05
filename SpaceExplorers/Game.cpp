@@ -1,5 +1,6 @@
 ﻿#include "Game.h"
 #include <iostream>
+#include <cmath>
 
 // Game constructor (called when the game is created)
 Game::Game() :
@@ -880,6 +881,12 @@ void Game::initializeTextures()
     {
         std::cerr << "Failed to load tablet texture!" << std::endl;
     }
+    if (!enemyTexture.loadFromFile("orangeEnemy.png"))
+    {
+        std::cerr << "Failed to load enemy texture!" << std::endl;
+    }
+    // Tell Enemy to use this texture
+    Enemy::setTexture(enemyTexture);
 }
 
 void Game::initializeRectangles()
@@ -1026,6 +1033,8 @@ void Game::resetGameSettings()
     enemiesPerWave = 5;
     bossSpawnTimer = 0.f;
     bossSpawnTimerMax = 30.f;
+    bossAbilityTimer = 0.f;
+    bossAbilityTimerMax = 3.f;
     enemySpawnTimer = 0.f;
     shockwaveRenderTime = 0.f;
     shopOpeningCooldown = 0.f;
@@ -1044,6 +1053,10 @@ void Game::resetGameSettings()
 void Game::update(float deltaTime) 
 {
     Enemy::update(deltaTime, player.getPosition());
+
+    // TODO: Pievienot jaunu tekstūru, kad spēlētājs saņem bojājumu
+    if (Enemy::checkPlayerTouch(player, playerHealth) > 0) shockwaveRenderTime = gameTime + .5f;
+
     playerHealth -= Enemy::checkPlayerTouch(player, playerHealth);
 	playerHealth -= applyBorderDamage();
     enemySpawnTimerMax = 4.f - 3 * (gameTime / 60.f);
@@ -1054,13 +1067,47 @@ void Game::update(float deltaTime)
 
     if (bossSpawnTimer >= bossSpawnTimerMax)
     {
-        new Enemy(50, 100, sf::Vector2f(-SCREEN_WIDTH / 10, SCREEN_HEIGHT / 2), 1000);
+        new Enemy(50, 100, sf::Vector2f(-SCREEN_WIDTH / 10, SCREEN_HEIGHT / 2), 1000, true);
         bossSpawnTimer = 0.f;
     }
     else
     {
         bossSpawnTimer += deltaTime;
     }
+    if (!Enemy::enemyBossList.empty())
+    {
+        if (bossAbilityTimer >= bossAbilityTimerMax)
+        {
+            // For each boss, boost nearby non-boss enemies' speed.
+            for (const auto& boss : Enemy::enemyBossList)
+            {
+                sf::Vector2f bossPos = boss.body.getPosition();
+                // Define a radius around the boss to consider "nearby"
+                float boostRadius = std::max(boss.body.getSize().x, boss.body.getSize().y) / 2.f + 30.f;
+
+                for (auto& e : Enemy::enemyList)
+                {
+                    // Skip bosses entirely (don't boost other bosses or the boss itself)
+                    if (e.isBossEnemy())
+                        continue;
+
+                    float dx = bossPos.x - e.body.getPosition().x;
+                    float dy = bossPos.y - e.body.getPosition().y;
+                    if (std::sqrt(dx * dx + dy * dy) <= boostRadius)
+                    {
+                        e.modifySpeed(5.f);
+                    }
+                }
+            }
+            bossAbilityTimer -= bossAbilityTimerMax;
+        }
+        else
+        {
+            bossAbilityTimer += deltaTime;
+        }
+
+    }
+
     if (gameTime >= winningSurvivalTime && Enemy::enemyList.size() == 0 || sf::Keyboard::isKeyPressed(sf::Keyboard::F))
     {
         gameOverTitle.setOutlineColor(sf::Color::Green);
