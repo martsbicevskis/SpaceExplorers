@@ -8,13 +8,15 @@
 std::vector<Bullet> Bullet::bulletList;
 
 //constructor
-Bullet::Bullet(float speed, float size, sf::Vector2f position, sf::Vector2f targetLocation, bool isExplosive)
+Bullet::Bullet(float speed, float size, sf::Vector2f position, sf::Vector2f targetLocation, bool isExplosive, bool isPiercing)
 {
     this->speed = speed;
     this->size = size;
     this->position = position;
     this->targetLocation = targetLocation;
     this->isExplosive = isExplosive;
+    this->isPiercing = isPiercing;
+
 
     body.setRadius(size);
     body.setPosition(position);
@@ -95,10 +97,24 @@ void Bullet::checkCollisions(const sf::RenderWindow& window)
             if ((xDistance < b.body.getRadius() * 2 && xDistance > -e.body.getSize().x) &&
                 (yDistance < b.body.getRadius() * 2 && yDistance > -e.body.getSize().y))
             {
-                e.takeDamage(10.0f);
-                if (b.isExplosive) explode(sf::Vector2f(b.body.getPosition().x + b.body.getRadius(), b.body.getPosition().y + b.body.getRadius()));
+                if (std::find(b.hitList.begin(), b.hitList.end(), &e) == b.hitList.end())
+                {
+                    e.takeDamage(10.0f);
+                }
+                if (b.isExplosive)
+                {
+                    explode(sf::Vector2f(b.body.getPosition().x + b.body.getRadius(), b.body.getPosition().y + b.body.getRadius()));
+                }
+                if (!b.isPiercing)
+                {
                 b.body.setFillColor(sf::Color::Transparent);
                 b.body.setOutlineColor(sf::Color::Transparent);
+                }
+                else
+                {
+                    if (std::find(b.hitList.begin(), b.hitList.end(), &e) == b.hitList.end())
+                        b.hitList.push_back(&e);
+                }
             }
         }
     }
@@ -124,11 +140,11 @@ int Bullet::hitRemove()
 }
 
 //updating the bullet spawn timer and spawning bullets
-float Bullet::trySpawnRapid(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime, bool isExplosive)
+float Bullet::trySpawnRapid(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime)
 {
     if (bulletSpawnTimer >= bulletSpawnTimerMax)
     {
-        new Bullet(1000.f, 10.f, sf::Vector2f(playerLocation), static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)), isExplosive);
+        new Bullet(1000.f, 10.f, sf::Vector2f(playerLocation), static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)), false, false);
         return -bulletSpawnTimer;
     }
     else
@@ -137,13 +153,13 @@ float Bullet::trySpawnRapid(sf::Vector2f playerLocation, sf::RenderWindow& windo
     }
 }
 
-float Bullet::trySpawnShotgun(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime, bool isExplosive)
+float Bullet::trySpawnShotgun(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime)
 {
     if (bulletSpawnTimer >= bulletSpawnTimerMax)
     {
-        new Bullet(1000.f, 10.f, sf::Vector2f(playerLocation), sf::Vector2f(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y), isExplosive);
-        new Bullet(1000.f, 10.f, sf::Vector2f(playerLocation), sf::Vector2f(sf::Mouse::getPosition(window).x - Game::SCREEN_WIDTH / 20, sf::Mouse::getPosition(window).y - Game::SCREEN_HEIGHT / 20), isExplosive);
-        new Bullet(1000.f, 10.f, sf::Vector2f(playerLocation), sf::Vector2f(sf::Mouse::getPosition(window).x + Game::SCREEN_WIDTH / 20, sf::Mouse::getPosition(window).y + Game::SCREEN_HEIGHT / 20), isExplosive);
+        new Bullet(1000.f, 10.f, sf::Vector2f(playerLocation), sf::Vector2f(sf::Mouse::getPosition(window).x, sf::Mouse::getPosition(window).y), false, false);
+        new Bullet(1000.f, 10.f, sf::Vector2f(playerLocation), sf::Vector2f(sf::Mouse::getPosition(window).x - Game::SCREEN_WIDTH / 20, sf::Mouse::getPosition(window).y - Game::SCREEN_HEIGHT / 20), false, false);
+        new Bullet(1000.f, 10.f, sf::Vector2f(playerLocation), sf::Vector2f(sf::Mouse::getPosition(window).x + Game::SCREEN_WIDTH / 20, sf::Mouse::getPosition(window).y + Game::SCREEN_HEIGHT / 20), false, false);
 
         return -bulletSpawnTimer;
     }
@@ -153,11 +169,24 @@ float Bullet::trySpawnShotgun(sf::Vector2f playerLocation, sf::RenderWindow& win
     }
 }
 
-float Bullet::trySpawnBomb(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime, bool isExplosive)
+float Bullet::trySpawnBomb(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime)
 {
     if (bulletSpawnTimer >= bulletSpawnTimerMax)
     {
-        new Bullet(1000.f, 10.f, sf::Vector2f(playerLocation), static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)), isExplosive);
+        new Bullet(1000.f, 10.f, sf::Vector2f(playerLocation), static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)), true, false);
+        return -bulletSpawnTimer;
+    }
+    else
+    {
+        return deltatime;
+    }
+}
+
+float Bullet::trySpawnPiercing(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime)
+{
+    if (bulletSpawnTimer >= bulletSpawnTimerMax)
+    {
+        new Bullet(1000.f, 10.f, sf::Vector2f(playerLocation), static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)), false, true);
         return -bulletSpawnTimer;
     }
     else

@@ -27,9 +27,13 @@ int main() {
 /*
 * ========================================================
 *  Jautâjums, vai spçli vajag padarît sareþìîtâku pçc bûtîbas?
+*  Jautâjums, vai spçlç vajadzçtu ieviest mûþîgos uzlabojumus, kas paliek uz katru nâkamo spçli, kad tos nopçrk?
+*  varbût var nopirkt uzlabojumus par vispârîgo valûtu, ko var pçc tam nopirkt katra lîmeòa laikâ ar lîmeòa valûtu?
 * 
 * Pievienot skinus?
 * Pievienot sasniegumus (piemçram, dabût 10000$, uzvarçt neizmantojot veikalu utt.)
 * Ienaidnieki izmet naudu, kas spçlçtâjam jâsavâc no zemes?
 * 
+* Samazinât attâlumu, no kura ienaidnieki var nodarît bojâjumu spçlçtâjam
+* Pievienot ienaidniekus, kas nomirstot izmet no sevis divus parastos ienaidniekus?
 */

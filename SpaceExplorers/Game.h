@@ -32,7 +32,7 @@ public:
 private:
     //game states
     enum class GameState { MENU, PLAY, INSTRUCTIONS, PAUSE, SETTINGS, GAME_OVER, SHOP, LEVEL };
-    enum class ShotMode { RAPID, SHOTGUN, BOMB };
+    enum class ShotMode { RAPID, SHOTGUN, BOMB, PIERCING };
 
     sf::RenderWindow window;
     sf::Font font;
@@ -157,8 +157,11 @@ private:
 	void initializeTextures();
 	void initializeRectangles();
     void drawHealthBar(sf::RenderWindow& window);
+    void updateHealthBar();
     void drawManaBar(sf::RenderWindow& window);
+    void updateManaBar();
 	void drawMoneyText(sf::RenderWindow& window);
+    void updateMoneyText();
 	void hightlightHower(sf::Text& button, sf::Vector2f mousePos);
     float applyBorderDamage();
 	void activateManaAbility();

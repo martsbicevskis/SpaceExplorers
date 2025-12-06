@@ -2,12 +2,13 @@
 #include <SFML/Graphics.hpp>
 #include <iostream>
 #include <vector>
+#include "enemy.h"
 
 class Bullet
 {
 public:
 	//constructor
-    Bullet(float speed, float size, sf::Vector2f position, sf::Vector2f targetLocation, bool isExplosive);
+    Bullet(float speed, float size, sf::Vector2f position, sf::Vector2f targetLocation, bool isExplosive, bool isPiercing);
 
 	//Bullet functions
     static void update(float deltaTime);
@@ -15,9 +16,11 @@ public:
     static void checkRemove(const sf::RenderWindow& window);
     static void checkCollisions(const sf::RenderWindow& window);
     static int hitRemove();
-    static float trySpawnRapid(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime, bool isExplosive);
-    static float trySpawnShotgun(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime, bool isExplosive);
-    static float trySpawnBomb(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime, bool isExplosive);
+    static float trySpawnRapid(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime);
+    static float trySpawnShotgun(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime);
+    static float trySpawnBomb(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime);
+    static float trySpawnPiercing(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime);
+
     static void explode(sf::Vector2f location);
     void move(float deltaTime);
     void draw(sf::RenderWindow& window);
@@ -34,7 +37,9 @@ private:
     float speed;
     float size;
     bool isExplosive;
+    bool isPiercing;
     sf::Vector2f position;
     sf::Vector2f targetLocation;
 	sf::Texture bulletTexture;
+    std::vector<Enemy*> hitList;
 };

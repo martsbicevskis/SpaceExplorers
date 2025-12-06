@@ -1,7 +1,8 @@
 ﻿#include "Game.h"
 #include <iostream>
 
-// Game constructor (called when the game is created)
+// -------------------------------------------- Game constructor --------------------------------------------
+
 Game::Game() :
     //initializing the game variables
     window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Ekrāns", sf::Style::Default),
@@ -42,7 +43,8 @@ Game::Game() :
 	initializeRectangles();    
 }
 
-// Main Game Loop
+// -------------------------------------------- Main Game Loop --------------------------------------------
+
 void Game::run()
 {
     while (window.isOpen()) 
@@ -87,8 +89,10 @@ void Game::run()
         }
     }
 }
+// -------------------------------------------- INPUT HANDLING --------------------------------------------
 
-// Input handling method (Menu)
+// --------------------------------------------Input handling (MENU)-----------------------------------------
+
 void Game::handleMenuInput()
 {
     sf::Event event;
@@ -139,7 +143,8 @@ void Game::handleMenuInput()
 	hightlightHower(exitButton, mousePos);
 }
 
-// Input handling method (Pause)
+//-------------------------------------------- Input handling (PAUSE) --------------------------------------------
+
 void Game::handlePauseInput(float deltaTime) 
 {
     sf::Event event;
@@ -207,7 +212,8 @@ void Game::handleInstructionsInput()
     hightlightHower(instrExitButton, mousePos);
 }
 
-// Input handling method (Game Over)
+// -------------------------------------------- Input handling (GAME OVER) --------------------------------------------
+
 void Game::handleGameOverInput() 
 {
     sf::Event event;
@@ -239,7 +245,8 @@ void Game::handleGameOverInput()
 	hightlightHower(gameOverMainMenuButton, mousePos);
 }
 
-// Input handling method (Shop)
+// -------------------------------------------- Input handling (SHOP) --------------------------------------------
+
 void Game::handleShopInput(float deltaTime)
 {
     sf::Event event;
@@ -346,6 +353,7 @@ void Game::handleShopInput(float deltaTime)
     }
 
 }
+// -------------------------------------------- Input handling (LEVEL) --------------------------------------------
 
 void Game::handleLevelInput()
 {
@@ -407,7 +415,8 @@ void Game::handleLevelInput()
 
 
 
-// Input handling method (Settings)
+// -------------------------------------------- Input handling (SETTINGS) --------------------------------------------
+
 void Game::handleSettingsInput() 
 {
     sf::Event event;
@@ -433,7 +442,7 @@ void Game::handleSettingsInput()
 	hightlightHower(backButton, mousePos);
 }
 
-// Input handling method (Game)
+// -------------------------------------------- Input handling (GAME) --------------------------------------------
 void Game::handleGameInput(float deltaTime) 
 {
     sf::Event event;
@@ -495,23 +504,65 @@ void Game::handleGameInput(float deltaTime)
     {
         shotMode = ShotMode::BOMB;
     }
-
+    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num4))
+    {
+        shotMode = ShotMode::PIERCING;
+    }
 
     if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) 
     {
+        // Defining bullets spawn position for ALL CASES
+        sf::Vector2f spawnPos(
+            player.getPosition().x + (playerSize - defaultBulletSize) / 2,
+            player.getPosition().y + (playerSize - defaultBulletSize) / 2
+        );
+
         switch (shotMode)
         {
-        case Game::ShotMode::RAPID:
-            bulletSpawnTimer += Bullet::trySpawnRapid(sf::Vector2f(player.getPosition().x + (playerSize - defaultBulletSize) / 2, player.getPosition().y + (playerSize - defaultBulletSize) / 2), window, bulletSpawnTimer, bulletSpawnTimerMax, deltaTime, false);
-            break;
-        case Game::ShotMode::SHOTGUN:
-            bulletSpawnTimer += Bullet::trySpawnShotgun(sf::Vector2f(player.getPosition().x + (playerSize - defaultBulletSize) / 2, player.getPosition().y + (playerSize - defaultBulletSize) / 2), window, bulletSpawnTimer, bulletSpawnTimerMax, deltaTime, false);
-            break;
-        case Game::ShotMode::BOMB:
-            bulletSpawnTimer += Bullet::trySpawnBomb(sf::Vector2f(player.getPosition().x + (playerSize - defaultBulletSize) / 2, player.getPosition().y + (playerSize - defaultBulletSize) / 2), window, bulletSpawnTimer, bulletSpawnTimerMax, deltaTime, true);
-            break;
-        default:
-            break;
+            case Game::ShotMode::RAPID:
+                bulletSpawnTimer += Bullet::trySpawnRapid(
+                    spawnPos,
+                    window,
+                    bulletSpawnTimer,
+                    bulletSpawnTimerMax,
+                    deltaTime
+                );
+                break;
+
+
+            case Game::ShotMode::SHOTGUN:
+                bulletSpawnTimer += Bullet::trySpawnShotgun(
+                    spawnPos,
+                    window,
+                    bulletSpawnTimer,
+                    bulletSpawnTimerMax,
+                    deltaTime
+                );
+                break;
+
+
+            case Game::ShotMode::BOMB:
+                bulletSpawnTimer += Bullet::trySpawnBomb(
+                    spawnPos,
+                    window, bulletSpawnTimer,
+                    bulletSpawnTimerMax,
+                    deltaTime
+                );
+                break;
+
+
+            case Game::ShotMode::PIERCING:
+                bulletSpawnTimer += Bullet::trySpawnPiercing(
+                    spawnPos,
+                    window,
+                    bulletSpawnTimer,
+                    bulletSpawnTimerMax,
+                    deltaTime);
+                break;
+
+
+            default:
+                break;
         }
     }
 	if (shopOpeningCooldown < openingCooldownMax)
@@ -519,6 +570,7 @@ void Game::handleGameInput(float deltaTime)
 		shopOpeningCooldown += deltaTime;
 	}
 }
+// -------------------------------------------- Initializing Buttons --------------------------------------------
 
 void Game::initializeButtons()
 {
@@ -832,7 +884,7 @@ void Game::initializeButtons()
     instrExitButton.setFillColor(sf::Color::White);
     instrExitButton.setOutlineThickness(2);
     instrExitButton.setOutlineColor(sf::Color::White);
-    instrExitButton.setPosition(SCREEN_WIDTH / 100 * 50, SCREEN_HEIGHT / 100 * 85);
+    instrExitButton.setPosition(SCREEN_WIDTH / 100 * 45, SCREEN_HEIGHT / 100 * 85);
 
     // Shooting (Instructions)
     instrShooting.setFont(font);
@@ -853,6 +905,7 @@ void Game::initializeButtons()
     instrShop.setPosition(SCREEN_WIDTH / 100 * 35, SCREEN_HEIGHT / 100 * 60);
 
 }
+// -------------------------------------------- Initializing Textures --------------------------------------------
 
 void Game::initializeTextures()
 {
@@ -881,6 +934,7 @@ void Game::initializeTextures()
         std::cerr << "Failed to load tablet texture!" << std::endl;
     }
 }
+// -------------------------------------------- Initializing Rectangles with textures --------------------------------------------
 
 void Game::initializeRectangles()
 {
@@ -936,8 +990,9 @@ void Game::initializeRectangles()
 	levelTablet.setTexture(&levelTabletTexture);
 }
 
-// Drawing health bar
-void Game::drawHealthBar(sf::RenderWindow& window)
+// -------------------------------------------- Updating and Drawing health bar --------------------------------------------
+
+void Game::updateHealthBar()
 {
     if (playerHealth > defaultPlayerHealth)
     {
@@ -948,28 +1003,50 @@ void Game::drawHealthBar(sf::RenderWindow& window)
         healthBar.setSize(sf::Vector2f(manaBarBorder.getSize().x * (playerHealth / defaultPlayerHealth), healthBar.getSize().y));
     }
     healthBar.setFillColor(sf::Color::Green);
-	healthText.setString(std::to_string(static_cast<int>(playerHealth)));
+    healthText.setString(std::to_string(static_cast<int>(playerHealth)));
+}
+
+void Game::drawHealthBar(sf::RenderWindow& window)
+{
+
 	window.draw(healthBar);
 	window.draw(healthBarBorder);
 	window.draw(healthText);
 }
 
-// Drawing mana bar
-void Game::drawManaBar(sf::RenderWindow& window)
+
+// -------------------------------------------- Undating and Drawing Mana Bar --------------------------------------------
+
+void Game::updateManaBar()
 {
     manaBar.setSize(sf::Vector2f(manaBarBorder.getSize().x * (playerMana / maxPlayerMana), manaBar.getSize().y));
     manaBar.setFillColor((playerMana >= maxPlayerMana) ? sf::Color::Magenta : sf::Color::Cyan);
-	manaText.setString(std::to_string(static_cast<int>(playerMana)));
+    manaText.setString(std::to_string(static_cast<int>(playerMana)));
+}
+
+void Game::drawManaBar(sf::RenderWindow& window)
+{
 	window.draw(manaBar);
 	window.draw(manaBarBorder); 
 	window.draw(manaText);
 }
 
+
+// -------------------------------------------- Undating and Drawing Money Text --------------------------------------------
+
+void Game::updateMoneyText()
+{
+    moneyText.setString(std::to_string(playerMoney) + " $");
+}
+
 void Game::drawMoneyText(sf::RenderWindow& window)
 {
-	moneyText.setString(std::to_string(playerMoney) + " $");
 	window.draw(moneyText);
 }
+
+
+
+// -------------------------------------------- Button Highlighting Method --------------------------------------------
 
 void Game::hightlightHower(sf::Text& button, sf::Vector2f mousePos)
 {
@@ -984,7 +1061,8 @@ void Game::hightlightHower(sf::Text& button, sf::Vector2f mousePos)
 }
 
 
-// Applying border damage
+// -------------------------------------------- Applying border damage --------------------------------------------
+
 float Game::applyBorderDamage()
 {
 	float damage = 0.0f;
@@ -998,7 +1076,8 @@ float Game::applyBorderDamage()
 	return damage;
 }
 
-// Executing mana ability
+// -------------------------------------------- Executing mana ability --------------------------------------------
+
 void Game::activateManaAbility()
 {
 	if (playerMana >= maxPlayerMana)
@@ -1008,6 +1087,7 @@ void Game::activateManaAbility()
 		shockwaveRenderTime = gameTime + .5f;
 	}
 }
+// -------------------------------------------- Resetting Game settings --------------------------------------------
 
 void Game::resetGameSettings()
 {
@@ -1040,12 +1120,16 @@ void Game::resetGameSettings()
     Bullet::bulletList.clear();
 }
 
-// Updating the game (in game state)
+// -------------------------------------------- Updating the game (every frame in Game state) --------------------------------------------
+
 void Game::update(float deltaTime) 
 {
     Enemy::update(deltaTime, player.getPosition());
     playerHealth -= Enemy::checkPlayerTouch(player, playerHealth);
 	playerHealth -= applyBorderDamage();
+    updateHealthBar();
+    updateManaBar();
+    updateMoneyText();
     enemySpawnTimerMax = 4.f - 3 * (gameTime / 60.f);
     if (gameTime < winningSurvivalTime)
     {
@@ -1091,7 +1175,10 @@ void Game::update(float deltaTime)
 	gameTime += deltaTime;
 }
 
-// Rendering GameStates
+// -------------------------------------------- Rendering GameStates --------------------------------------------
+
+// -------------------------------------------- MENU --------------------------------------------
+
 void Game::renderMenu() 
 {
     window.clear();
@@ -1108,6 +1195,7 @@ void Game::renderMenu()
 
     window.display();
 }
+// -------------------------------------------- SETTINGS --------------------------------------------
 
 void Game::renderSettings() 
 {
@@ -1116,6 +1204,7 @@ void Game::renderSettings()
     window.draw(backButton);
     window.display();
 }
+// -------------------------------------------- GAME --------------------------------------------
 
 void Game::renderGame()
 {
@@ -1138,6 +1227,7 @@ void Game::renderGame()
 
     window.display();
 }
+// -------------------------------------------- PAUSE --------------------------------------------
 
 void Game::renderPause() 
 {
@@ -1148,6 +1238,7 @@ void Game::renderPause()
     window.draw(mainMenuButton);
     window.display();
 }
+// -------------------------------------------- INSTRUCTIONS --------------------------------------------
 
 void Game::renderInstructions()
 {
@@ -1169,6 +1260,7 @@ void Game::renderInstructions()
     window.draw(instrShop);
     window.display();
 }
+// -------------------------------------------- GAME OVER --------------------------------------------
 
 void Game::renderGameOver() 
 {
@@ -1179,6 +1271,7 @@ void Game::renderGameOver()
     window.draw(gameOverMainMenuButton);
     window.display();
 }
+// -------------------------------------------- SHOP --------------------------------------------
 
 void Game::renderShop()
 {
@@ -1200,6 +1293,7 @@ void Game::renderShop()
 
     window.display();
 }
+// -------------------------------------------- LEVEL --------------------------------------------
 
 void Game::renderLevel()
 {
@@ -1214,4 +1308,5 @@ void Game::renderLevel()
     Ad::drawAll(window);
 	window.display();
 }
+
 
