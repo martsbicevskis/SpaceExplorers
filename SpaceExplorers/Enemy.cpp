@@ -5,19 +5,36 @@
 #include <ctime>  
 
 std::vector<Enemy> Enemy::enemyList;
+std::vector<Enemy> Enemy::enemyBossList;
 float Enemy::abilityDamageDistance = 300.f;
+const sf::Texture* Enemy::s_texture = nullptr;
+
 
 //constructor
-Enemy::Enemy(float speed, float size, sf::Vector2f location, float health)
-	: speed(speed), size(size), location(location), health(health), maxHealth(health)
+Enemy::Enemy(float speed, float size, sf::Vector2f location, float health, bool isBoss)
+	: speed(speed), size(size), location(location), health(health), maxHealth(health), isBoss(isBoss)
 {
     body.setSize(sf::Vector2f(size, size));
     body.setPosition(location);
-    if (!enemyTexture.loadFromFile("orangeEnemy.png")) {
-        std::cerr << "Failed to load enemy texture!" << std::endl;
+    if (s_texture) {
+        body.setTexture(s_texture);
     }
-	body.setTexture(&enemyTexture);
+    if (this->isBoss)
+    {
+        enemyBossList.push_back(*this);
+    }
     enemyList.push_back(*this);
+  
+}
+
+void Enemy::setTexture(const sf::Texture& texture)
+{
+    s_texture = &texture;
+}
+
+bool Enemy::isBossEnemy() const
+{
+    return this->isBoss;
 }
 
 
@@ -48,7 +65,7 @@ float Enemy::trySpawn(float spawnTimer, float spawnTimerMax, float deltaTime, in
                 break;
             }
 
-            new Enemy((20 + rand() % 5) * difficulty, 20, spawnPosition, (5 + rand() % 2) * difficulty * (1 + gameTime / 40));
+            new Enemy((20 + rand() % 5) * difficulty, 20, spawnPosition, (5 + rand() % 2) * difficulty * (1 + gameTime / 40), false);
         }
         return -spawnTimerMax;
     }
@@ -87,9 +104,19 @@ int Enemy::hitRemove()
             }
             return false;
         });
+
+    // erase removed enemies from enemyList
     enemyList.erase(it, enemyList.end());
 
-	return removedCount;
+    // rebuild boss list from remaining enemies to keep it consistent
+    enemyBossList.clear();
+    for (const auto& e : enemyList)
+    {
+        if (e.isBoss)
+            enemyBossList.push_back(e);
+    }
+
+    return removedCount;
 }
 
 //checking if an enemy has touched the player
@@ -98,10 +125,10 @@ float Enemy::checkPlayerTouch(sf::RectangleShape player, float playerHealth)
     float damage = 0.f;
     for (const auto& e : enemyList)
     {
-        if (e.body.getPosition().x + e.body.getSize().x > player.getPosition().x &&
-            e.body.getPosition().x < player.getPosition().x + player.getSize().x &&
-            e.body.getPosition().y + e.body.getSize().y > player.getPosition().y &&
-            e.body.getPosition().y < player.getPosition().y + player.getSize().y)
+        if (e.body.getPosition().x + e.body.getSize().x > player.getPosition().x + player.getSize().x / 4 &&
+            e.body.getPosition().x < player.getPosition().x + player.getSize().x * 3 / 4 &&
+            e.body.getPosition().y + e.body.getSize().y > player.getPosition().y + player.getSize().x / 4 &&
+            e.body.getPosition().y < player.getPosition().y + player.getSize().y * 3 / 4)
         {
             damage += 0.1f;
         }
@@ -159,4 +186,9 @@ void Enemy::manaAbilityDamage(sf::Vector2f playerPosition)
 			e.takeDamage(50.0f);
         }
 	}
+}
+
+void Enemy::modifySpeed(float multiplier)
+{
+    this->speed *= multiplier;
 }

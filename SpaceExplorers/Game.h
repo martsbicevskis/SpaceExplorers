@@ -98,6 +98,7 @@ private:
     sf::Texture playerTexture;
 	sf::Texture backgroundTexture;
     sf::Texture shockwaveScreenOutlineTexture;
+    sf::Texture enemyTexture;
 
 	//Level elements
     sf::RectangleShape levelTablet;
@@ -134,6 +135,8 @@ private:
 	//timers
     float bossSpawnTimer;
     float bossSpawnTimerMax;
+    float bossAbilityTimer;
+    float bossAbilityTimerMax;
     float enemySpawnTimer;
     float enemySpawnTimerMax;
     float bulletSpawnTimer;

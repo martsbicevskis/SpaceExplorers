@@ -8,6 +8,7 @@ int main() {
     game.run();
     return 0;
 }
+
 //Pievienot cenas veikalâ
 //Pievienot fonu
 
@@ -33,6 +34,7 @@ int main() {
 * Pievienot skinus?
 * Pievienot sasniegumus (piemçram, dabût 10000$, uzvarçt neizmantojot veikalu utt.)
 * Ienaidnieki izmet naudu, kas spçlçtâjam jâsavâc no zemes?
+* Pievienot skaòas
 * 
 * Samazinât attâlumu, no kura ienaidnieki var nodarît bojâjumu spçlçtâjam
 * Pievienot ienaidniekus, kas nomirstot izmet no sevis divus parastos ienaidniekus?

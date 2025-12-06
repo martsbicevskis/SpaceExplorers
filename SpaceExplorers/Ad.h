@@ -12,7 +12,7 @@ public:
 
 private:
 	int slot;
-	sf::Texture adTexture;
+	sf::Texture& adTexture;
 
 public:
 	sf::RectangleShape body;
