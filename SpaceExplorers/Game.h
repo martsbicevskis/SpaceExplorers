@@ -48,12 +48,20 @@ private:
     sf::Text GM_backButton;
 
     // Game Menu (GM) Shop
-    sf::RectangleShape GM_shopPlayerModel;
-    sf::Text GM_shopBackButton;
-    sf::Text GM_shopMoneyCounter;
+    // Variables
     sf::Vector2f defaultPlayerModelPosition;
     sf::Vector2f GM_shopMousePos;
+    sf::Vector2f GM_shopUpgradeButtonSize;
     bool GM_shopMouseHeld;
+
+    // Buttons
+    sf::Text GM_shopBackButton;
+    sf::Text GM_shopMoneyCounter;
+
+    sf::RectangleShape GM_shopPlayerModel;
+    sf::RectangleShape GM_shopUpgradeButton1;
+    sf::RectangleShape GM_shopUpgradeButton2;
+    sf::RectangleShape GM_shopUpgradeButton3;
 
     // Game Menu (GM) Level
     sf::RectangleShape levelTablet;
@@ -183,7 +191,7 @@ private:
 	void initializeButtons();
 	void initializeTextures();
 	void initializeRectangles();
-    void resetGMShopObjectPositions();
+    void setDefaultGMShopObjectPositions();
     void drawHealthBar(sf::RenderWindow& window);
     void updateHealthBar();
     void drawManaBar(sf::RenderWindow& window);

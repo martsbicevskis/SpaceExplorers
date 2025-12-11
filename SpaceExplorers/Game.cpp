@@ -38,12 +38,15 @@ Game::Game() :
     winningSurvivalTime(70.f),
     GM_shopMouseHeld(false),
     continueAvailable(false),
+    GM_shopUpgradeButtonSize(
+        SCREEN_WIDTH / 8,
+        SCREEN_HEIGHT / 8),
     defaultPlayerModelPosition(
         SCREEN_WIDTH / 2 - playerSize / 2, 
         SCREEN_HEIGHT / 2 - playerSize / 2),
     shotMode(ShotMode::RAPID),
     state(GameState::MENU)
-
+        
 {
     initializeTextures();
     initializeButtons();
@@ -480,7 +483,7 @@ void Game::handleGMGameMenuInput()
             }
             else if (GM_shopButton.getGlobalBounds().contains(mousePos))
             {
-                resetGMShopObjectPositions();
+                setDefaultGMShopObjectPositions();
                 state = GameState::GM_SHOP;
             }
             else if (GM_backButton.getGlobalBounds().contains(mousePos))
@@ -1192,17 +1195,33 @@ void Game::initializeRectangles()
     levelTablet.setSize(sf::Vector2f(SCREEN_WIDTH, SCREEN_HEIGHT));
     levelTablet.setPosition(0, 0);
 	levelTablet.setTexture(&levelTabletTexture);
+    
+
+    // GM_shop objects
+    setDefaultGMShopObjectPositions();
 
     GM_shopPlayerModel.setTexture(&playerTexture);
-    GM_shopPlayerModel.setPosition(defaultPlayerModelPosition);
     GM_shopPlayerModel.setSize(sf::Vector2f(playerSize, playerSize));
 
+	GM_shopUpgradeButton1.setTexture(&shockwaveScreenOutlineTexture);
+    GM_shopUpgradeButton1.setSize(GM_shopUpgradeButtonSize);
+
+    GM_shopUpgradeButton2.setTexture(&shockwaveScreenOutlineTexture);
+    GM_shopUpgradeButton2.setSize(GM_shopUpgradeButtonSize);
+
+    GM_shopUpgradeButton3.setTexture(&shockwaveScreenOutlineTexture);
+    GM_shopUpgradeButton3.setSize(GM_shopUpgradeButtonSize);
 }
+
 // -------------------------------------------- Reset GM shop object positions --------------------------------------------
 
-void Game::resetGMShopObjectPositions()
+void Game::setDefaultGMShopObjectPositions()
 {
     GM_shopPlayerModel.setPosition(defaultPlayerModelPosition);
+    GM_shopUpgradeButton1.setPosition(defaultPlayerModelPosition.x - SCREEN_WIDTH / 8, defaultPlayerModelPosition.y - SCREEN_HEIGHT / 8);
+    GM_shopUpgradeButton2.setPosition(defaultPlayerModelPosition.x, defaultPlayerModelPosition.y - SCREEN_HEIGHT / 8);
+    GM_shopUpgradeButton3.setPosition(defaultPlayerModelPosition.x + SCREEN_WIDTH / 8, defaultPlayerModelPosition.y - SCREEN_HEIGHT / 8);
+
 }
 
 
@@ -1572,6 +1591,9 @@ void Game::renderGMShop()
     window.draw(GM_shopMoneyCounter);
     window.draw(GM_shopBackButton);
     window.draw(GM_shopPlayerModel);
+    window.draw(GM_shopUpgradeButton1);
+    window.draw(GM_shopUpgradeButton2);
+    window.draw(GM_shopUpgradeButton3);
 
     window.display();
 }
