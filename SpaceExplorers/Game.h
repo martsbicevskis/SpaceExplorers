@@ -26,16 +26,42 @@ public:
 
 
 	//global variables
-    int playerMoney = 0;
+    int gameMoney = 0;
+    int globalMoney = 0;
     float gameTime = 0;
 
 private:
     //game states
-    enum class GameState { MENU, PLAY, INSTRUCTIONS, PAUSE, SETTINGS, GAME_OVER, SHOP, LEVEL };
+    enum class GameState { MENU, PLAY, INSTRUCTIONS, PAUSE, SETTINGS, GAME_OVER, SHOP,
+        GM_GAMEMENU, GM_LEVEL, GM_SHOP };
+
     enum class ShotMode { RAPID, SHOTGUN, BOMB, PIERCING };
 
     sf::RenderWindow window;
     sf::Font font;
+
+    // Game Menu (GM)
+    sf::Text GM_levelButton;
+    sf::Text GM_shopButton;
+    sf::Text GM_title;
+    sf::Text GM_specialMisionsButton;
+    sf::Text GM_backButton;
+
+    // Game Menu (GM) Shop
+    sf::RectangleShape GM_shopPlayerModel;
+    sf::Text GM_shopBackButton;
+    sf::Text GM_shopMoneyCounter;
+    sf::Vector2f defaultPlayerModelPosition;
+    sf::Vector2f GM_shopMousePos;
+    bool GM_shopMouseHeld;
+
+    // Game Menu (GM) Level
+    sf::RectangleShape levelTablet;
+    sf::Text levelBackButton;
+    sf::Text levelPlayButtonEasy;
+    sf::Text levelPlayButtonMedium;
+    sf::Text levelPlayButtonHard;
+    sf::Text levelPlayButtonInfinite;
 
     // Main Menu
     sf::Text playButton;
@@ -83,6 +109,8 @@ private:
     //Game elements
 	sf::RectangleShape background;
 	sf::RectangleShape shockwaveScreenOutline;
+    sf::RectangleShape damageOutline;
+    sf::RectangleShape gameOverOutline;
     sf::RectangleShape player;
 	sf::RectangleShape healthBarBorder;
 	sf::RectangleShape manaBarBorder;
@@ -99,14 +127,7 @@ private:
 	sf::Texture backgroundTexture;
     sf::Texture shockwaveScreenOutlineTexture;
     sf::Texture enemyTexture;
-
-	//Level elements
-    sf::RectangleShape levelTablet;
-	sf::Text levelBackButton;
-    sf::Text levelPlayButtonEasy;
-    sf::Text levelPlayButtonMedium;
-    sf::Text levelPlayButtonHard;
-    sf::Text levelPlayButtonInfinite;
+    sf::Texture damageOutlineTexture;
 
 
 
@@ -127,6 +148,7 @@ private:
     //game stats
 	float borderDamage;
 	float shockwaveRenderTime;
+	float damageOutlineRenderTime;
 	float shopOpeningCooldown;
     int enemiesPerWave;
     float difficulty;
@@ -154,11 +176,14 @@ private:
     void handleGameOverInput();
 	void handleShopInput(float deltaTime);
 	void handleLevelInput();
+    void handleGMGameMenuInput();
+    void handleGMShopInput();
 
 	//drawing and updating methods
 	void initializeButtons();
 	void initializeTextures();
 	void initializeRectangles();
+    void resetGMShopObjectPositions();
     void drawHealthBar(sf::RenderWindow& window);
     void updateHealthBar();
     void drawManaBar(sf::RenderWindow& window);
@@ -180,6 +205,9 @@ private:
     void renderGameOver();
 	void renderShop();
 	void renderLevel();
+    void renderGMGameMenu();
+    void renderGMShop();
+
 };
 
 #endif

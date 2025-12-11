@@ -12,6 +12,7 @@ public:
 
 	//Enemy functions
     static float trySpawn(float spawnTimer, float spawnTimerMax, float deltaTime, int enemiesPerWave, float difficulty, float gameTime);
+    static void tryActivateBossAbility(float deltaTime, float* bossAbilityTimer, float* bossAbilityTimerMax);
     static void update(float deltaTime, sf::Vector2f playerPosition);
     static void drawAll(sf::RenderWindow& window);
     static int hitRemove();

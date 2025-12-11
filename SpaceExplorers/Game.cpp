@@ -17,10 +17,12 @@ Game::Game() :
     player(sf::Vector2f(playerSize, playerSize)),
     playerHealth(defaultPlayerHealth),
     playerSpeed(defaultPlayerSpeed),
-    playerMoney(0),
+    globalMoney(1000),
+    gameMoney(0),
     playerMana(0),
     maxPlayerMana(defaultPlayerManaMax),
     shockwaveRenderTime(0.f),
+    damageOutlineRenderTime(0.f),
     shopOpeningCooldown(0.f),
     difficulty(1.f),
     enemiesPerWave(5),
@@ -34,7 +36,11 @@ Game::Game() :
     movementSpeedUpgradeCost(10.f),
     firingSpeedUpgradeCost(10.f),
     winningSurvivalTime(70.f),
+    GM_shopMouseHeld(false),
     continueAvailable(false),
+    defaultPlayerModelPosition(
+        SCREEN_WIDTH / 2 - playerSize / 2, 
+        SCREEN_HEIGHT / 2 - playerSize / 2),
     shotMode(ShotMode::RAPID),
     state(GameState::MENU)
 
@@ -83,9 +89,17 @@ void Game::run()
 			handleShopInput(deltaTime);
 			renderShop();
 			break;
-        case GameState::LEVEL:
+        case GameState::GM_GAMEMENU:
+            handleGMGameMenuInput();
+            renderGMGameMenu();
+            break;
+        case GameState::GM_LEVEL:
             handleLevelInput();
             renderLevel();
+            break;
+        case GameState::GM_SHOP:
+            handleGMShopInput();
+            renderGMShop();
             break;
         }
     }
@@ -110,12 +124,7 @@ void Game::handleMenuInput()
 
             if (playButton.getGlobalBounds().contains(mousePos)) 
             {
-                Ad(1, shockwaveScreenOutlineTexture);
-                Ad(2, shockwaveScreenOutlineTexture);
-                Ad(3, shockwaveScreenOutlineTexture);
-                Ad(4, shockwaveScreenOutlineTexture);
-
-                state = GameState::LEVEL;
+                state = GameState::GM_GAMEMENU;
             }
             else if (menuContinueButton.getGlobalBounds().contains(mousePos) && continueAvailable)
             {
@@ -272,9 +281,9 @@ void Game::handleShopInput(float deltaTime)
 
             if (healthUpgradeButton.getGlobalBounds().contains(mousePos) || healthUpgradeButtonCost.getGlobalBounds().contains(mousePos)) 
             {
-                if (playerMoney >= healthUpgradeCost) 
+                if (gameMoney >= healthUpgradeCost) 
                 {
-                    playerMoney -= healthUpgradeCost;
+                    gameMoney -= healthUpgradeCost;
                     healthUpgradeCost *= 1.2;
                     playerHealth += 20;
 					healthUpgradeButtonCost.setString(std::to_string(static_cast<int>(healthUpgradeCost)));
@@ -282,9 +291,9 @@ void Game::handleShopInput(float deltaTime)
             }
             else if (movementSpeedUpgradeButton.getGlobalBounds().contains(mousePos) || movementSpeedUpgradeButtonCost.getGlobalBounds().contains(mousePos))
             {
-                if (playerMoney >= movementSpeedUpgradeCost) 
+                if (gameMoney >= movementSpeedUpgradeCost) 
                 {
-                    playerMoney -= movementSpeedUpgradeCost;
+                    gameMoney -= movementSpeedUpgradeCost;
                     movementSpeedUpgradeCost *= 1.2;
                     playerSpeed += 50;
 					movementSpeedUpgradeButtonCost.setString(std::to_string(static_cast<int>(movementSpeedUpgradeCost)));
@@ -292,9 +301,9 @@ void Game::handleShopInput(float deltaTime)
 			}
             else if (firingSpeedUpgradeButton.getGlobalBounds().contains(mousePos) || firingSpeedUpgradeButtonCost.getGlobalBounds().contains(mousePos))
             {
-                if (playerMoney >= firingSpeedUpgradeCost) 
+                if (gameMoney >= firingSpeedUpgradeCost) 
                 {
-                    playerMoney -= firingSpeedUpgradeCost;
+                    gameMoney -= firingSpeedUpgradeCost;
                     firingSpeedUpgradeCost *= 1.2;
                     bulletSpawnTimerMax *= .5f;
 					firingSpeedUpgradeButtonCost.setString(std::to_string(static_cast<int>(firingSpeedUpgradeCost)));
@@ -308,11 +317,11 @@ void Game::handleShopInput(float deltaTime)
 	sf::Vector2f mousePos(static_cast<float>(sf::Mouse::getPosition(window).x), static_cast<float>(sf::Mouse::getPosition(window).y));
 	if ((healthUpgradeButton.getGlobalBounds().contains(mousePos) 
         || healthUpgradeButtonCost.getGlobalBounds().contains(mousePos)) 
-        && playerMoney >= healthUpgradeCost)
+        && gameMoney >= healthUpgradeCost)
 	{
 		healthUpgradeButton.setOutlineColor(sf::Color::Green);
 	}
-	else if(playerMoney >= healthUpgradeCost)
+	else if(gameMoney >= healthUpgradeCost)
 	{
 		healthUpgradeButton.setOutlineColor(sf::Color::White);
 	}
@@ -322,11 +331,11 @@ void Game::handleShopInput(float deltaTime)
 	}
 	if ((movementSpeedUpgradeButton.getGlobalBounds().contains(mousePos)
 		|| movementSpeedUpgradeButtonCost.getGlobalBounds().contains(mousePos))
-		&& playerMoney >= movementSpeedUpgradeCost)
+		&& gameMoney >= movementSpeedUpgradeCost)
 	{
 		movementSpeedUpgradeButton.setOutlineColor(sf::Color::Green);
 	}
-	else if (playerMoney >= movementSpeedUpgradeCost)
+	else if (gameMoney >= movementSpeedUpgradeCost)
 	{
 		movementSpeedUpgradeButton.setOutlineColor(sf::Color::White);
 	}
@@ -336,11 +345,11 @@ void Game::handleShopInput(float deltaTime)
 	}
 	if ((firingSpeedUpgradeButton.getGlobalBounds().contains(mousePos)
 		|| firingSpeedUpgradeButtonCost.getGlobalBounds().contains(mousePos))
-		&& playerMoney >= firingSpeedUpgradeCost)
+		&& gameMoney >= firingSpeedUpgradeCost)
 	{
 		firingSpeedUpgradeButton.setOutlineColor(sf::Color::Green);
 	}
-	else if (playerMoney >= firingSpeedUpgradeCost)
+	else if (gameMoney >= firingSpeedUpgradeCost)
 	{
 		firingSpeedUpgradeButton.setOutlineColor(sf::Color::White);
 	}
@@ -352,7 +361,8 @@ void Game::handleShopInput(float deltaTime)
     {
         shopOpeningCooldown += deltaTime;
     }
-
+	updateMoneyText();
+    updateHealthBar();
 }
 // -------------------------------------------- Input handling (LEVEL) --------------------------------------------
 
@@ -373,7 +383,7 @@ void Game::handleLevelInput()
 
             if (levelBackButton.getGlobalBounds().contains(mousePos))
             {
-                state = GameState::MENU;
+                state = GameState::GM_GAMEMENU;
             }
             if (Ad::adList[0].body.getGlobalBounds().contains(mousePos))
             {
@@ -414,9 +424,8 @@ void Game::handleLevelInput()
 	hightlightHower(levelBackButton, mousePos);
 }
 
-
-
 // -------------------------------------------- Input handling (SETTINGS) --------------------------------------------
+
 
 void Game::handleSettingsInput() 
 {
@@ -443,7 +452,120 @@ void Game::handleSettingsInput()
 	hightlightHower(backButton, mousePos);
 }
 
-// -------------------------------------------- Input handling (GAME) --------------------------------------------
+
+// -------------------------------------------- Input handling (GM_gameMenu) --------------------------------------------
+
+void Game::handleGMGameMenuInput()
+{
+    sf::Event event;
+    while (window.pollEvent(event))
+    {
+        if (event.type == sf::Event::Closed)
+        {
+            window.close();
+        }
+
+        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
+        {
+            sf::Vector2f mousePos(static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y));
+
+            if (GM_levelButton.getGlobalBounds().contains(mousePos))
+            {
+                Ad(1, shockwaveScreenOutlineTexture);
+                Ad(2, shockwaveScreenOutlineTexture);
+                Ad(3, shockwaveScreenOutlineTexture);
+                Ad(4, shockwaveScreenOutlineTexture);
+
+                state = GameState::GM_LEVEL;
+            }
+            else if (GM_shopButton.getGlobalBounds().contains(mousePos))
+            {
+                resetGMShopObjectPositions();
+                state = GameState::GM_SHOP;
+            }
+            else if (GM_backButton.getGlobalBounds().contains(mousePos))
+            {
+                state = GameState::MENU;
+            }
+            else if (GM_specialMisionsButton.getGlobalBounds().contains(mousePos))
+            {
+                Ad(1, shockwaveScreenOutlineTexture);
+                Ad(2, shockwaveScreenOutlineTexture);
+                Ad(3, shockwaveScreenOutlineTexture);
+                Ad(4, shockwaveScreenOutlineTexture);
+
+                state = GameState::GM_LEVEL;
+            }
+        }
+    }
+    sf::Vector2f mousePos(static_cast<float>(sf::Mouse::getPosition(window).x), static_cast<float>(sf::Mouse::getPosition(window).y));
+
+    hightlightHower(GM_levelButton, mousePos);
+    hightlightHower(GM_shopButton, mousePos);
+    hightlightHower(GM_backButton, mousePos);
+    hightlightHower(GM_specialMisionsButton, mousePos);
+}
+
+
+// -------------------------------------------- Input handling (GM_shop) --------------------------------------------
+
+void Game::handleGMShopInput()
+{
+    sf::Event event;
+    while (window.pollEvent(event))
+    {
+        if (event.type == sf::Event::Closed)
+        {
+            window.close();
+        }
+
+        // Left mouse pressed -> either click UI or start dragging
+        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
+        {
+            sf::Vector2f mousePos(static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y));
+
+            // If Back button clicked, go back to GM menu and do not start dragging
+            if (GM_shopBackButton.getGlobalBounds().contains(mousePos))
+            {
+                state = GameState::GM_GAMEMENU;
+                GM_shopMouseHeld = false;
+            }
+            else
+            {
+                // Start dragging and store current mouse position
+                GM_shopMouseHeld = true;
+                GM_shopMousePos = mousePos;
+            }
+        }
+        // Left mouse released -> stop dragging
+        else if (event.type == sf::Event::MouseButtonReleased && event.mouseButton.button == sf::Mouse::Left)
+        {
+            GM_shopMouseHeld = false;
+        }
+        // Mouse moved -> if dragging, move model by delta
+        else if (event.type == sf::Event::MouseMoved)
+        {
+            sf::Vector2f mousePos(static_cast<float>(event.mouseMove.x), static_cast<float>(event.mouseMove.y));
+
+            if (GM_shopMouseHeld)
+            {
+                sf::Vector2f delta = mousePos - GM_shopMousePos;
+                GM_shopPlayerModel.move(delta);
+                GM_shopMousePos = mousePos;
+            }
+
+            // highlight back button while moving
+            hightlightHower(GM_shopBackButton, mousePos);
+        }
+    }
+
+    // Also update hover state when there are no events
+    sf::Vector2f tempMousePos(static_cast<float>(sf::Mouse::getPosition(window).x), static_cast<float>(sf::Mouse::getPosition(window).y));
+    hightlightHower(GM_shopBackButton, tempMousePos);
+}
+
+// -------------------------------------------- Input handling (Game) --------------------------------------------
+
 void Game::handleGameInput(float deltaTime) 
 {
     sf::Event event;
@@ -905,6 +1027,69 @@ void Game::initializeButtons()
     instrShop.setOutlineColor(sf::Color::Cyan);
     instrShop.setPosition(SCREEN_WIDTH / 100 * 35, SCREEN_HEIGHT / 100 * 60);
 
+    // GM_title
+    GM_title.setFont(font);
+    GM_title.setString("Space Explorererers");
+    GM_title.setCharacterSize(100);
+    GM_title.setFillColor(sf::Color::White);
+    GM_title.setOutlineThickness(2);
+    GM_title.setOutlineColor(sf::Color::Cyan);
+    GM_title.setPosition(SCREEN_WIDTH / 100 * 35, SCREEN_HEIGHT / 100 * 20);
+
+    // GM_levelButton
+    GM_levelButton.setFont(font);
+    GM_levelButton.setString("Select Level");
+    GM_levelButton.setCharacterSize(50);
+    GM_levelButton.setFillColor(sf::Color::White);
+    GM_levelButton.setOutlineThickness(2);
+    GM_levelButton.setOutlineColor(sf::Color::White);
+    GM_levelButton.setPosition(SCREEN_WIDTH / 100 * 35, SCREEN_HEIGHT / 100 * 40);
+
+    // GM_shopButton
+    GM_shopButton.setFont(font);
+    GM_shopButton.setString("Shop");
+    GM_shopButton.setCharacterSize(50);
+    GM_shopButton.setFillColor(sf::Color::White);
+    GM_shopButton.setOutlineThickness(2);
+    GM_shopButton.setOutlineColor(sf::Color::White);
+    GM_shopButton.setPosition(SCREEN_WIDTH / 100 * 35, SCREEN_HEIGHT / 100 * 50);
+
+    // GM_specialMisionsButton
+    GM_specialMisionsButton.setFont(font);
+    GM_specialMisionsButton.setString("Special Misions");
+    GM_specialMisionsButton.setCharacterSize(50);
+    GM_specialMisionsButton.setFillColor(sf::Color::White);
+    GM_specialMisionsButton.setOutlineThickness(2);
+    GM_specialMisionsButton.setOutlineColor(sf::Color::White);
+    GM_specialMisionsButton.setPosition(SCREEN_WIDTH / 100 * 35, SCREEN_HEIGHT / 100 * 60);
+
+    // GM_backButton
+    GM_backButton.setFont(font);
+    GM_backButton.setString("Main Menu");
+    GM_backButton.setCharacterSize(50);
+    GM_backButton.setFillColor(sf::Color::White);
+    GM_backButton.setOutlineThickness(2);
+    GM_backButton.setOutlineColor(sf::Color::White);
+    GM_backButton.setPosition(SCREEN_WIDTH / 100 * 35, SCREEN_HEIGHT / 100 * 70);
+
+    // GMSHOP_BackButton
+    GM_shopBackButton.setFont(font);
+    GM_shopBackButton.setString("Back");
+    GM_shopBackButton.setCharacterSize(50);
+    GM_shopBackButton.setFillColor(sf::Color::White);
+    GM_shopBackButton.setOutlineThickness(2);
+    GM_shopBackButton.setOutlineColor(sf::Color::White);
+    GM_shopBackButton.setPosition(SCREEN_WIDTH / 100 * 95, 0);
+
+    // GMSHOP_MoneyCounter
+    GM_shopMoneyCounter.setFont(font);
+    GM_shopMoneyCounter.setString(std::to_string(static_cast<int>(globalMoney)) + " $");
+    GM_shopMoneyCounter.setCharacterSize(50);
+    GM_shopMoneyCounter.setFillColor(sf::Color::White);
+    GM_shopMoneyCounter.setOutlineThickness(2);
+    GM_shopMoneyCounter.setOutlineColor(sf::Color::Yellow);
+    GM_shopMoneyCounter.setPosition(0, 0);
+
 }
 // -------------------------------------------- Initializing Textures --------------------------------------------
 
@@ -938,6 +1123,11 @@ void Game::initializeTextures()
     {
         std::cerr << "Failed to load enemy texture!" << std::endl;
     }
+    if (!damageOutlineTexture.loadFromFile("damageOutlineTexture.png"))
+    {
+        std::cerr << "Failed to load damage texture!" << std::endl;
+    }
+
     // Tell Enemy to use this texture
     Enemy::setTexture(enemyTexture);
 }
@@ -958,6 +1148,13 @@ void Game::initializeRectangles()
     shockwaveScreenOutline.setPosition(0, 0);
     shockwaveScreenOutline.setSize(sf::Vector2f(SCREEN_WIDTH, SCREEN_HEIGHT));
     shockwaveScreenOutline.setTexture(&shockwaveScreenOutlineTexture);
+
+    damageOutline.setPosition(0, 0);
+    damageOutline.setSize(sf::Vector2f(SCREEN_WIDTH, SCREEN_HEIGHT));
+    damageOutline.setTexture(&damageOutlineTexture);
+
+    gameOverOutline.setPosition(0, 0);
+    gameOverOutline.setSize(sf::Vector2f(SCREEN_WIDTH, SCREEN_HEIGHT));
 
     healthBarBorder.setOutlineColor(sf::Color::White);
     healthBarBorder.setOutlineThickness(2);
@@ -995,7 +1192,19 @@ void Game::initializeRectangles()
     levelTablet.setSize(sf::Vector2f(SCREEN_WIDTH, SCREEN_HEIGHT));
     levelTablet.setPosition(0, 0);
 	levelTablet.setTexture(&levelTabletTexture);
+
+    GM_shopPlayerModel.setTexture(&playerTexture);
+    GM_shopPlayerModel.setPosition(defaultPlayerModelPosition);
+    GM_shopPlayerModel.setSize(sf::Vector2f(playerSize, playerSize));
+
 }
+// -------------------------------------------- Reset GM shop object positions --------------------------------------------
+
+void Game::resetGMShopObjectPositions()
+{
+    GM_shopPlayerModel.setPosition(defaultPlayerModelPosition);
+}
+
 
 // -------------------------------------------- Updating and Drawing health bar --------------------------------------------
 
@@ -1043,7 +1252,7 @@ void Game::drawManaBar(sf::RenderWindow& window)
 
 void Game::updateMoneyText()
 {
-    moneyText.setString(std::to_string(playerMoney) + " $");
+    moneyText.setString(std::to_string(gameMoney) + " $");
 }
 
 void Game::drawMoneyText(sf::RenderWindow& window)
@@ -1102,7 +1311,7 @@ void Game::resetGameSettings()
     borderDamage = 1.0f;
     playerHealth = defaultPlayerHealth;
     playerSpeed = defaultPlayerSpeed;
-    playerMoney = 0;
+    gameMoney = 0;
     playerMana = 0;
     maxPlayerMana = defaultPlayerManaMax;
     enemiesPerWave = 3;
@@ -1117,6 +1326,7 @@ void Game::resetGameSettings()
     bossAbilityTimerMax = 3.f;
     enemySpawnTimer = 0.f;
     shockwaveRenderTime = 0.f;
+    damageOutlineRenderTime = 0.f;
     shopOpeningCooldown = 0.f;
     healthUpgradeCost = 10.f;
     movementSpeedUpgradeCost = 10.f;
@@ -1135,9 +1345,10 @@ void Game::update(float deltaTime)
 {
     Enemy::update(deltaTime, player.getPosition());
 
-    // TODO: Pievienot jaunu tekstūru, kad spēlētājs saņem bojājumu
-    if (Enemy::checkPlayerTouch(player, playerHealth) > 0) shockwaveRenderTime = gameTime + .5f;
-
+    if (Enemy::checkPlayerTouch(player, playerHealth) > 0 || applyBorderDamage() > 0)
+    {
+        damageOutlineRenderTime = gameTime + 0.1f;
+    }
     playerHealth -= Enemy::checkPlayerTouch(player, playerHealth);
 	playerHealth -= applyBorderDamage();
     updateHealthBar();
@@ -1158,52 +1369,24 @@ void Game::update(float deltaTime)
     {
         bossSpawnTimer += deltaTime;
     }
-    if (!Enemy::enemyBossList.empty())
-    {
-        if (bossAbilityTimer >= bossAbilityTimerMax)
-        {
-            // For each boss, boost nearby non-boss enemies' speed.
-            for (const auto& boss : Enemy::enemyBossList)
-            {
-                sf::Vector2f bossPos = boss.body.getPosition();
-                // Define a radius around the boss to consider "nearby"
-                float boostRadius = std::max(boss.body.getSize().x, boss.body.getSize().y) / 2.f + 30.f;
 
-                for (auto& e : Enemy::enemyList)
-                {
-                    // Skip bosses entirely (don't boost other bosses or the boss itself)
-                    if (e.isBossEnemy())
-                        continue;
-
-                    float dx = bossPos.x - e.body.getPosition().x;
-                    float dy = bossPos.y - e.body.getPosition().y;
-                    if (std::sqrt(dx * dx + dy * dy) <= boostRadius)
-                    {
-                        e.modifySpeed(5.f);
-                    }
-                }
-            }
-            bossAbilityTimer -= bossAbilityTimerMax;
-        }
-        else
-        {
-            bossAbilityTimer += deltaTime;
-        }
-
-    }
+    // !!! SALABOT BOSS ABILITY !!!
+    Enemy::tryActivateBossAbility(deltaTime, &bossAbilityTimer, &bossAbilityTimerMax);
 
     if (gameTime >= winningSurvivalTime && Enemy::enemyList.size() == 0 || sf::Keyboard::isKeyPressed(sf::Keyboard::F))
     {
         gameOverTitle.setOutlineColor(sf::Color::Green);
         gameOverTitle.setString("You win!");
         gameOverTitle.setPosition(SCREEN_WIDTH * 0.38, SCREEN_HEIGHT / 2 - 180);
+        gameOverOutline.setSize(sf::Vector2f(SCREEN_WIDTH, SCREEN_HEIGHT));
+        gameOverOutline.setTexture(&shockwaveScreenOutlineTexture);
         state = GameState::GAME_OVER;
     }
 
     Bullet::update(deltaTime);
     Bullet::checkRemove(window);
     Bullet::checkCollisions(window);
-    playerMoney += Enemy::hitRemove();
+    gameMoney += Enemy::hitRemove();
     playerMana += Bullet::hitRemove();
 
 	if (playerMana > maxPlayerMana)
@@ -1216,6 +1399,8 @@ void Game::update(float deltaTime)
         gameOverTitle.setOutlineColor(sf::Color::Red);
         gameOverTitle.setString("Game Over!");
         gameOverTitle.setPosition(SCREEN_WIDTH * 0.33, SCREEN_HEIGHT / 2 - 180);
+        gameOverOutline.setSize(sf::Vector2f(SCREEN_WIDTH, SCREEN_HEIGHT));
+        gameOverOutline.setTexture(&damageOutlineTexture);
         state = GameState::GAME_OVER;
     }
 
@@ -1264,6 +1449,10 @@ void Game::renderGame()
         window.draw(shockwave);
 		window.draw(shockwaveScreenOutline);
     }
+    if (gameTime <= damageOutlineRenderTime)
+    {
+        window.draw(damageOutline);
+	}
     window.draw(player);
     Enemy::drawAll(window);
     Bullet::drawAll(window);
@@ -1313,6 +1502,7 @@ void Game::renderGameOver()
 {
     window.clear();
     window.draw(background);
+    window.draw(gameOverOutline);
     window.draw(gameOverTitle);
     window.draw(restartButton);
     window.draw(gameOverMainMenuButton);
@@ -1340,7 +1530,7 @@ void Game::renderShop()
 
     window.display();
 }
-// -------------------------------------------- LEVEL --------------------------------------------
+// -------------------------------------------- Game Menu (GM) LEVEL --------------------------------------------
 
 void Game::renderLevel()
 {
@@ -1354,6 +1544,36 @@ void Game::renderLevel()
     window.draw(levelPlayButtonInfinite);
     Ad::drawAll(window);
 	window.display();
+}
+
+// -------------------------------------------- Game Menu (GM) Game Menu --------------------------------------------
+
+void Game::renderGMGameMenu()
+{
+    window.clear();
+
+    window.draw(background);
+    window.draw(GM_levelButton);
+    window.draw(GM_shopButton);
+    window.draw(GM_title);
+    window.draw(GM_specialMisionsButton);
+    window.draw(GM_backButton);
+
+    window.display();
+}
+
+// -------------------------------------------- Game Menu (GM) SHOP --------------------------------------------
+
+void Game::renderGMShop()
+{
+    window.clear();
+
+    window.draw(background);
+    window.draw(GM_shopMoneyCounter);
+    window.draw(GM_shopBackButton);
+    window.draw(GM_shopPlayerModel);
+
+    window.display();
 }
 
 

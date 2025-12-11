@@ -75,6 +75,44 @@ float Enemy::trySpawn(float spawnTimer, float spawnTimerMax, float deltaTime, in
     }
 }
 
+void Enemy::tryActivateBossAbility(float deltaTime, float* bossAbilityTimer, float* bossAbilityTimerMax)
+{
+    if (!Enemy::enemyBossList.empty())
+    {
+        if (*bossAbilityTimer >= *bossAbilityTimerMax)
+        {
+            // For each boss, boost nearby non-boss enemies' speed.
+            for (const auto& boss : Enemy::enemyBossList)
+            {
+                sf::Vector2f bossPos = boss.body.getPosition();
+                // Define a radius around the boss to consider "nearby"
+                float boostRadius = std::max(boss.body.getSize().x, boss.body.getSize().y) / 2.f + 30.f;
+
+                for (auto& e : Enemy::enemyList)
+                {
+                    // Skip bosses entirely (don't boost other bosses or the boss itself)
+                    if (e.isBossEnemy())
+                        continue;
+
+                    float dx = bossPos.x - e.body.getPosition().x;
+                    float dy = bossPos.y - e.body.getPosition().y;
+                    if (std::sqrt(dx * dx + dy * dy) <= boostRadius)
+                    {
+                        e.modifySpeed(5.f);
+                    }
+                }
+            }
+            *bossAbilityTimer -= *bossAbilityTimerMax;
+        }
+        else
+        {
+            *bossAbilityTimer += deltaTime;
+        }
+
+    }
+
+}
+
 //moving enemies towards the player
 void Enemy::update(float deltaTime, sf::Vector2f playerPosition)
 {
