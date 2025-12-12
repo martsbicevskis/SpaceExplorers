@@ -7,47 +7,30 @@
 Game::Game() :
     //initializing the game variables
     window(sf::VideoMode(SCREEN_WIDTH, SCREEN_HEIGHT), "Ekrāns", sf::Style::Default),
-    gameTime(.0f),
-    borderDamage(1.0f),
     planet(50.f),
     healthBarBorder(sf::Vector2f(100.0f, 20.0f)),
     manaBarBorder(sf::Vector2f(100.0f, 20.0f)),
     healthBar(sf::Vector2f(100.0f, 20.0f)),
     manaBar(sf::Vector2f(100.0f, 20.0f)),
     player(sf::Vector2f(playerSize, playerSize)),
-    playerHealth(defaultPlayerHealth),
-    playerSpeed(defaultPlayerSpeed),
     globalMoney(1000),
-    gameMoney(0),
-    playerMana(0),
-    maxPlayerMana(defaultPlayerManaMax),
-    shockwaveRenderTime(0.f),
-    damageOutlineRenderTime(0.f),
-    shopOpeningCooldown(0.f),
     difficulty(1.f),
-    enemiesPerWave(5),
-    bossSpawnTimer(0.f),
-    bossSpawnTimerMax(30.f),
-    enemySpawnTimer(2.f),
-    enemySpawnTimerMax(3.f),
-    bulletSpawnTimer(0.f),
-    bulletSpawnTimerMax(0.5f),
-    healthUpgradeCost(10.f),
-    movementSpeedUpgradeCost(10.f),
-    firingSpeedUpgradeCost(10.f),
     winningSurvivalTime(70.f),
+    exitPanelOpeningCooldown(0.f),
     GM_shopMouseHeld(false),
     continueAvailable(false),
+    exitPanelOpen(false),
     GM_shopUpgradeButtonSize(
         SCREEN_WIDTH / 8,
         SCREEN_HEIGHT / 8),
     defaultPlayerModelPosition(
         SCREEN_WIDTH / 2 - playerSize / 2, 
-        SCREEN_HEIGHT / 2 - playerSize / 2),
+        SCREEN_HEIGHT / 5 * 4 - playerSize / 2),
     shotMode(ShotMode::RAPID),
     state(GameState::MENU)
         
 {
+    resetGameSettings();
     initializeTextures();
     initializeButtons();
 	initializeRectangles();    
@@ -64,7 +47,7 @@ void Game::run()
         switch (state) 
         {
         case GameState::MENU:
-            handleMenuInput();
+            handleMenuInput(deltaTime);
             renderMenu();
             break;
         case GameState::SETTINGS:
@@ -75,9 +58,9 @@ void Game::run()
             handlePauseInput(deltaTime);
             renderPause();
             break;
-        case GameState::INSTRUCTIONS:
-            handleInstructionsInput();
-            renderInstructions();
+        case GameState::CONTROLS:
+            handleControlsInput();
+            renderControls();
             break;
         case GameState::PLAY:
             handleGameInput(deltaTime);
@@ -111,12 +94,26 @@ void Game::run()
 
 // --------------------------------------------Input handling (MENU)-----------------------------------------
 
-void Game::handleMenuInput()
+void Game::handleMenuInput(float deltaTime)
 {
     sf::Event event;
     while (window.pollEvent(event))
     {
         if (event.type == sf::Event::Closed)
+        {
+            window.close();
+        }
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape) && exitPanelOpeningCooldown > globalPanelOpeningCooldownMax)
+        {
+            exitPanelOpeningCooldown = 0.f;
+            if (!exitPanelOpen) exitPanelOpen = true;
+            else                exitPanelOpen = false;     
+        }
+        
+        if ((sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Space) || 
+            sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Enter)) && 
+            exitPanelOpen)
         {
             window.close();
         }
@@ -135,7 +132,7 @@ void Game::handleMenuInput()
             }
             else if (controlsButton.getGlobalBounds().contains(mousePos))
             {
-                state = GameState::INSTRUCTIONS;
+                state = GameState::CONTROLS;
             }
             else if (settingsButton.getGlobalBounds().contains(mousePos))
             {
@@ -143,9 +140,25 @@ void Game::handleMenuInput()
             }
             else if (exitButton.getGlobalBounds().contains(mousePos)) 
             {
-                window.close(); 
+                exitPanelOpen = true;
+                
+            }
+            if (exitPanelOpen)
+            {
+                if (exitPanelYesButton.getGlobalBounds().contains(mousePos))
+                {
+                    window.close();
+                }
+                if (exitPanelNoButton.getGlobalBounds().contains(mousePos))
+                {
+                    exitPanelOpen = false;
+                }
             }
         }
+    }
+    if (exitPanelOpeningCooldown < globalPanelOpeningCooldownMax)
+    {
+        exitPanelOpeningCooldown += deltaTime;
     }
 	sf::Vector2f mousePos(static_cast<float>(sf::Mouse::getPosition(window).x), static_cast<float>(sf::Mouse::getPosition(window).y));
 
@@ -154,6 +167,8 @@ void Game::handleMenuInput()
 	hightlightHower(settingsButton, mousePos);
     hightlightHower(controlsButton, mousePos);
 	hightlightHower(exitButton, mousePos);
+    hightlightHower(exitPanelYesButton, mousePos);
+    hightlightHower(exitPanelNoButton, mousePos);
 }
 
 //-------------------------------------------- Input handling (PAUSE) --------------------------------------------
@@ -169,7 +184,7 @@ void Game::handlePauseInput(float deltaTime)
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
         {
-            if (shopOpeningCooldown >= openingCooldownMax)
+            if (shopOpeningCooldown >= globalPanelOpeningCooldownMax)
             {
                 state = GameState::PLAY;
                 shopOpeningCooldown = 0.f;
@@ -194,13 +209,13 @@ void Game::handlePauseInput(float deltaTime)
 	hightlightHower(continueButton, mousePos);
 	hightlightHower(mainMenuButton, mousePos);
 
-    if (shopOpeningCooldown < openingCooldownMax)
+    if (shopOpeningCooldown < globalPanelOpeningCooldownMax)
     {
         shopOpeningCooldown += deltaTime;
     }
 }
 
-void Game::handleInstructionsInput()
+void Game::handleControlsInput()
 {
     sf::Event event;
     while (window.pollEvent(event))
@@ -209,11 +224,15 @@ void Game::handleInstructionsInput()
         {
             window.close();
         }
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
+        {
+			state = GameState::MENU;
+        }
         if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
         {
             sf::Vector2f mousePos(static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y));
 
-            if (instrExitButton.getGlobalBounds().contains(mousePos))
+            if (controlsExitButton.getGlobalBounds().contains(mousePos))
             {
                 state = GameState::MENU;
             }
@@ -222,7 +241,7 @@ void Game::handleInstructionsInput()
  
     sf::Vector2f mousePos(static_cast<float>(sf::Mouse::getPosition(window).x), static_cast<float>(sf::Mouse::getPosition(window).y));
 
-    hightlightHower(instrExitButton, mousePos);
+    hightlightHower(controlsExitButton, mousePos);
 }
 
 // -------------------------------------------- Input handling (GAME OVER) --------------------------------------------
@@ -235,6 +254,11 @@ void Game::handleGameOverInput()
         if (event.type == sf::Event::Closed) 
         {
             window.close();
+        }
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
+        {
+            state = GameState::MENU;
         }
 
         if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) 
@@ -271,7 +295,7 @@ void Game::handleShopInput(float deltaTime)
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E) || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
         {
-            if (shopOpeningCooldown >= openingCooldownMax)
+            if (shopOpeningCooldown >= globalPanelOpeningCooldownMax)
             {
                 state = GameState::PLAY;
 				shopOpeningCooldown = 0.f;
@@ -360,7 +384,7 @@ void Game::handleShopInput(float deltaTime)
 	{
 		firingSpeedUpgradeButton.setOutlineColor(sf::Color::Red);
 	}
-    if (shopOpeningCooldown < openingCooldownMax)
+    if (shopOpeningCooldown < globalPanelOpeningCooldownMax)
     {
         shopOpeningCooldown += deltaTime;
     }
@@ -378,6 +402,11 @@ void Game::handleLevelInput()
         if (event.type == sf::Event::Closed)
         {
             window.close();
+        }
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
+        {
+            state = GameState::GM_GAMEMENU;
         }
 
         if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
@@ -440,6 +469,11 @@ void Game::handleSettingsInput()
             window.close();
         }
 
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
+        {
+            state = GameState::MENU;
+        }
+
         if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) 
         {
             sf::Vector2f mousePos(static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y));
@@ -466,6 +500,11 @@ void Game::handleGMGameMenuInput()
         if (event.type == sf::Event::Closed)
         {
             window.close();
+        }
+
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
+        {
+            state = GameState::MENU;
         }
 
         if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
@@ -522,6 +561,11 @@ void Game::handleGMShopInput()
             window.close();
         }
 
+        if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
+        {
+            state = GameState::GM_GAMEMENU;
+        }
+
         // Left mouse pressed -> either click UI or start dragging
         if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left)
         {
@@ -553,8 +597,11 @@ void Game::handleGMShopInput()
             if (GM_shopMouseHeld)
             {
                 sf::Vector2f delta = mousePos - GM_shopMousePos;
-                GM_shopPlayerModel.move(delta);
                 GM_shopMousePos = mousePos;
+                for (auto* i : GM_shopMovableList)
+                {
+                    i->move(delta);
+                }
             }
 
             // highlight back button while moving
@@ -581,7 +628,7 @@ void Game::handleGameInput(float deltaTime)
 
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
         {
-            if (shopOpeningCooldown >= openingCooldownMax)
+            if (shopOpeningCooldown >= globalPanelOpeningCooldownMax)
             {
                 state = GameState::PAUSE;
                 shopOpeningCooldown = 0.f;
@@ -589,7 +636,7 @@ void Game::handleGameInput(float deltaTime)
         }
         if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::E))
         {
-            if (shopOpeningCooldown >= openingCooldownMax)
+            if (shopOpeningCooldown >= globalPanelOpeningCooldownMax)
             {
                 state = GameState::SHOP;
 				shopOpeningCooldown = 0.f;
@@ -683,7 +730,8 @@ void Game::handleGameInput(float deltaTime)
                     window,
                     bulletSpawnTimer,
                     bulletSpawnTimerMax,
-                    deltaTime);
+                    deltaTime
+                );
                 break;
 
 
@@ -691,7 +739,7 @@ void Game::handleGameInput(float deltaTime)
                 break;
         }
     }
-	if (shopOpeningCooldown < openingCooldownMax)
+	if (shopOpeningCooldown < globalPanelOpeningCooldownMax)
 	{
 		shopOpeningCooldown += deltaTime;
 	}
@@ -706,7 +754,10 @@ void Game::initializeButtons()
     moneyText.setFillColor(sf::Color::Yellow);
     moneyText.setOutlineThickness(2);
     moneyText.setOutlineColor(sf::Color::White);
-    moneyText.setPosition(SCREEN_WIDTH - 100, 100);
+    moneyText.setPosition(
+        SCREEN_WIDTH - 100,
+        100
+    );
 
     // Title display (Main Menu)
     title.setFont(font);
@@ -715,7 +766,10 @@ void Game::initializeButtons()
     title.setFillColor(sf::Color::White);
     title.setOutlineThickness(2);
     title.setOutlineColor(sf::Color::Cyan);
-    title.setPosition(SCREEN_WIDTH * 0.22, SCREEN_HEIGHT / 8);
+    title.setPosition(
+        SCREEN_WIDTH * 0.22,
+        SCREEN_HEIGHT / 8
+    );
 
     // Continue button (Main Menu)
     menuContinueButton.setFont(font);
@@ -724,7 +778,10 @@ void Game::initializeButtons()
     menuContinueButton.setFillColor(sf::Color::White);
     menuContinueButton.setOutlineThickness(2);
     menuContinueButton.setOutlineColor(sf::Color::White);
-    menuContinueButton.setPosition(SCREEN_WIDTH / 2 - 70, SCREEN_HEIGHT / 2 - 80);
+    menuContinueButton.setPosition(
+        SCREEN_WIDTH / 2 - 70,
+        SCREEN_HEIGHT / 2 - 80
+    );
 
     // Play button (Main Menu)
     playButton.setFont(font);
@@ -733,7 +790,10 @@ void Game::initializeButtons()
     playButton.setFillColor(sf::Color::White);
     playButton.setOutlineThickness(2);
     playButton.setOutlineColor(sf::Color::White);
-    playButton.setPosition(SCREEN_WIDTH / 2 - 70, SCREEN_HEIGHT / 2 - 0);
+    playButton.setPosition(
+        SCREEN_WIDTH / 2 - 70,
+        SCREEN_HEIGHT / 2 - 0
+    );
 
     // Settings button (Main Menu)
     settingsButton.setFont(font);
@@ -742,7 +802,10 @@ void Game::initializeButtons()
     settingsButton.setFillColor(sf::Color::White);
     settingsButton.setOutlineThickness(2);
     settingsButton.setOutlineColor(sf::Color::White);
-    settingsButton.setPosition(SCREEN_WIDTH / 2 - 70, SCREEN_HEIGHT / 2 + 160);
+    settingsButton.setPosition(
+        SCREEN_WIDTH / 2 - 70,
+        SCREEN_HEIGHT / 2 + 160
+    );
 
     // Controls button (Main Menu)
     controlsButton.setFont(font);
@@ -751,7 +814,10 @@ void Game::initializeButtons()
     controlsButton.setFillColor(sf::Color::White);
     controlsButton.setOutlineThickness(2);
     controlsButton.setOutlineColor(sf::Color::White);
-    controlsButton.setPosition(SCREEN_WIDTH / 2 - 70, SCREEN_HEIGHT / 2 + 80);
+    controlsButton.setPosition(
+        SCREEN_WIDTH / 2 - 70,
+        SCREEN_HEIGHT / 2 + 80
+    );
 
     // Exit button (Main Menu)
     exitButton.setFont(font);
@@ -760,7 +826,47 @@ void Game::initializeButtons()
     exitButton.setFillColor(sf::Color::White);
     exitButton.setOutlineThickness(2);
     exitButton.setOutlineColor(sf::Color::White);
-    exitButton.setPosition(SCREEN_WIDTH / 2 - 70, SCREEN_HEIGHT / 2 + 240);
+    exitButton.setPosition(
+        SCREEN_WIDTH / 2 - 70,
+        SCREEN_HEIGHT / 2 + 240
+    );
+
+    // Continue button (Main Menu)
+    exitPanelYesButton.setFont(font);
+    exitPanelYesButton.setString("Yes");
+    exitPanelYesButton.setCharacterSize(50);
+    exitPanelYesButton.setFillColor(sf::Color::White);
+    exitPanelYesButton.setOutlineThickness(2);
+    exitPanelYesButton.setOutlineColor(sf::Color::White);
+    exitPanelYesButton.setPosition(
+        SCREEN_WIDTH / 100 * 40,
+        SCREEN_HEIGHT / 100 * 50
+    );
+
+    // Continue button (Main Menu)
+    exitPanelNoButton.setFont(font);
+    exitPanelNoButton.setString("No");
+    exitPanelNoButton.setCharacterSize(50);
+    exitPanelNoButton.setFillColor(sf::Color::White);
+    exitPanelNoButton.setOutlineThickness(2);
+    exitPanelNoButton.setOutlineColor(sf::Color::White);
+    exitPanelNoButton.setPosition(
+        SCREEN_WIDTH / 100 * 60,
+        SCREEN_HEIGHT / 100 * 50
+    );
+
+    // Continue button (Main Menu)
+    exitPanelTitle.setFont(font);
+    exitPanelTitle.setString("Are you sure you want to exit?");
+    exitPanelTitle.setCharacterSize(42);
+    exitPanelTitle.setFillColor(sf::Color::White);
+    exitPanelTitle.setOutlineThickness(2);
+    exitPanelTitle.setOutlineColor(sf::Color::White);
+    exitPanelTitle.setPosition(
+        SCREEN_WIDTH / 100 * 30,
+        SCREEN_HEIGHT / 100 * 40
+    );
+
 
     // Back button (Settings)
     backButton.setFont(font);
@@ -769,7 +875,10 @@ void Game::initializeButtons()
     backButton.setFillColor(sf::Color::White);
     backButton.setOutlineThickness(2);
     backButton.setOutlineColor(sf::Color::White);
-    backButton.setPosition(SCREEN_WIDTH / 2 - 50, SCREEN_HEIGHT / 2);
+    backButton.setPosition(
+        SCREEN_WIDTH / 2 - 50,
+        SCREEN_HEIGHT / 2
+    );
 
     // Pause Menu (Pause)
     pauseTitle.setFont(font);
@@ -778,7 +887,10 @@ void Game::initializeButtons()
     pauseTitle.setFillColor(sf::Color::White);
     pauseTitle.setOutlineThickness(2);
     pauseTitle.setOutlineColor(sf::Color::Cyan);
-    pauseTitle.setPosition(SCREEN_WIDTH / 2 - 190, SCREEN_HEIGHT / 2 - 150);
+    pauseTitle.setPosition(
+        SCREEN_WIDTH / 2 - 190,
+        SCREEN_HEIGHT / 2 - 150
+    );
 
     // Continue button (Pause)
     continueButton.setFont(font);
@@ -787,7 +899,10 @@ void Game::initializeButtons()
     continueButton.setFillColor(sf::Color::White);
     continueButton.setOutlineThickness(2);
     continueButton.setOutlineColor(sf::Color::White);
-    continueButton.setPosition(SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT / 2 - 50);
+    continueButton.setPosition(
+        SCREEN_WIDTH / 2 - 100,
+        SCREEN_HEIGHT / 2 - 50
+    );
 
     // Main Menu button (Pause)
     mainMenuButton.setFont(font);
@@ -796,7 +911,10 @@ void Game::initializeButtons()
     mainMenuButton.setFillColor(sf::Color::White);
     mainMenuButton.setOutlineThickness(2);
     mainMenuButton.setOutlineColor(sf::Color::White);
-    mainMenuButton.setPosition(SCREEN_WIDTH / 2 - 120, SCREEN_HEIGHT / 2 + 50);
+    mainMenuButton.setPosition(
+        SCREEN_WIDTH / 2 - 120,
+        SCREEN_HEIGHT / 2 + 50
+    );
 
     // Game Over title (Game Over)
     gameOverTitle.setFont(font);
@@ -805,7 +923,10 @@ void Game::initializeButtons()
     gameOverTitle.setFillColor(sf::Color::White);
     gameOverTitle.setOutlineThickness(2);
     gameOverTitle.setOutlineColor(sf::Color::Red);
-    gameOverTitle.setPosition(SCREEN_WIDTH * 0.32, SCREEN_HEIGHT / 2 - 180);
+    gameOverTitle.setPosition(
+        SCREEN_WIDTH * 0.32,
+        SCREEN_HEIGHT / 2 - 180
+    );
 
     // Restart button (Game Over)
     restartButton.setFont(font);
@@ -814,7 +935,10 @@ void Game::initializeButtons()
     restartButton.setFillColor(sf::Color::White);
     restartButton.setOutlineThickness(2);
     restartButton.setOutlineColor(sf::Color::White);
-    restartButton.setPosition(SCREEN_WIDTH / 2 - 90, SCREEN_HEIGHT / 2 - 50);
+    restartButton.setPosition(
+        SCREEN_WIDTH / 2 - 90,
+        SCREEN_HEIGHT / 2 - 50
+    );
 
     // Main Menu button (Game Over)
     gameOverMainMenuButton.setFont(font);
@@ -823,7 +947,10 @@ void Game::initializeButtons()
     gameOverMainMenuButton.setFillColor(sf::Color::White);
     gameOverMainMenuButton.setOutlineThickness(2);
     gameOverMainMenuButton.setOutlineColor(sf::Color::White);
-    gameOverMainMenuButton.setPosition(SCREEN_WIDTH * 0.4, SCREEN_HEIGHT / 2 + 50);
+    gameOverMainMenuButton.setPosition(
+        SCREEN_WIDTH * 0.4,
+        SCREEN_HEIGHT / 2 + 50
+    );
 
     // Shop title (Shop)
     shopTitle.setFont(font);
@@ -832,14 +959,20 @@ void Game::initializeButtons()
     shopTitle.setFillColor(sf::Color::White);
     shopTitle.setOutlineThickness(2);
     shopTitle.setOutlineColor(sf::Color::Yellow);
-    shopTitle.setPosition(SCREEN_WIDTH / 9 * 4, SCREEN_HEIGHT / 10);
+    shopTitle.setPosition(
+        SCREEN_WIDTH / 9 * 4,
+        SCREEN_HEIGHT / 10
+    );
 
     // Close info text (Shop)
     closeInfoText.setFont(font);
     closeInfoText.setString("[Press 'E' to close]");
     closeInfoText.setCharacterSize(20);
     closeInfoText.setFillColor(sf::Color::White);
-    closeInfoText.setPosition(SCREEN_WIDTH / 9 * 4, SCREEN_HEIGHT / 10 - 10);
+    closeInfoText.setPosition(
+        SCREEN_WIDTH / 9 * 4,
+        SCREEN_HEIGHT / 10 - 10
+    );
 
     // Health Upgrade button (Shop)
     healthUpgradeButton.setFont(font);
@@ -848,7 +981,10 @@ void Game::initializeButtons()
     healthUpgradeButton.setFillColor(sf::Color::White);
     healthUpgradeButton.setOutlineThickness(1);
     healthUpgradeButton.setOutlineColor(sf::Color::White);
-    healthUpgradeButton.setPosition(SCREEN_WIDTH / 5, SCREEN_HEIGHT / 2);
+    healthUpgradeButton.setPosition(
+        SCREEN_WIDTH / 5,
+        SCREEN_HEIGHT / 2
+    );
 
     // Movement Speed Upgrade button (Shop)
     movementSpeedUpgradeButton.setFont(font);
@@ -857,7 +993,10 @@ void Game::initializeButtons()
     movementSpeedUpgradeButton.setFillColor(sf::Color::White);
     movementSpeedUpgradeButton.setOutlineThickness(1);
     movementSpeedUpgradeButton.setOutlineColor(sf::Color::White);
-    movementSpeedUpgradeButton.setPosition(SCREEN_WIDTH / 5, SCREEN_HEIGHT / 2 + 50);
+    movementSpeedUpgradeButton.setPosition(
+        SCREEN_WIDTH / 5,
+        SCREEN_HEIGHT / 2 + 50
+    );
 
     // Firing Speed Upgrade button (Shop)
     firingSpeedUpgradeButton.setFont(font);
@@ -866,7 +1005,10 @@ void Game::initializeButtons()
     firingSpeedUpgradeButton.setFillColor(sf::Color::White);
     firingSpeedUpgradeButton.setOutlineThickness(1);
     firingSpeedUpgradeButton.setOutlineColor(sf::Color::White);
-    firingSpeedUpgradeButton.setPosition(SCREEN_WIDTH / 5, SCREEN_HEIGHT / 2 + 100);
+    firingSpeedUpgradeButton.setPosition(
+        SCREEN_WIDTH / 5,
+        SCREEN_HEIGHT / 2 + 100
+    );
 
     // Health Upgrade button cost (Shop)
     healthUpgradeButtonCost.setFont(font);
@@ -875,7 +1017,10 @@ void Game::initializeButtons()
     healthUpgradeButtonCost.setFillColor(sf::Color::Yellow);
     healthUpgradeButtonCost.setOutlineThickness(2);
     healthUpgradeButtonCost.setOutlineColor(sf::Color::White);
-    healthUpgradeButtonCost.setPosition(SCREEN_WIDTH / 5 * 4, SCREEN_HEIGHT / 2);
+    healthUpgradeButtonCost.setPosition(
+        SCREEN_WIDTH / 5 * 4,
+        SCREEN_HEIGHT / 2
+    );
 
     // Movement Speed Upgrade button cost (Shop)
     movementSpeedUpgradeButtonCost.setFont(font);
@@ -884,7 +1029,10 @@ void Game::initializeButtons()
     movementSpeedUpgradeButtonCost.setFillColor(sf::Color::White);
     movementSpeedUpgradeButtonCost.setOutlineThickness(2);
     movementSpeedUpgradeButtonCost.setOutlineColor(sf::Color::Yellow);
-    movementSpeedUpgradeButtonCost.setPosition(SCREEN_WIDTH / 5 * 4, SCREEN_HEIGHT / 2 + 50);
+    movementSpeedUpgradeButtonCost.setPosition(
+        SCREEN_WIDTH / 5 * 4,
+        SCREEN_HEIGHT / 2 + 50
+    );
 
     // Firing Speed Upgrade button cost (Shop)
     firingSpeedUpgradeButtonCost.setFont(font);
@@ -893,25 +1041,34 @@ void Game::initializeButtons()
     firingSpeedUpgradeButtonCost.setFillColor(sf::Color::White);
     firingSpeedUpgradeButtonCost.setOutlineThickness(2);
     firingSpeedUpgradeButtonCost.setOutlineColor(sf::Color::Yellow);
-    firingSpeedUpgradeButtonCost.setPosition(SCREEN_WIDTH / 5 * 4, SCREEN_HEIGHT / 2 + 100);
-    
-	// Back button (Level)
-	levelBackButton.setFont(font);
-	levelBackButton.setString("Back");
-	levelBackButton.setCharacterSize(50);
-	levelBackButton.setFillColor(sf::Color::White);
-	levelBackButton.setOutlineThickness(2);
-	levelBackButton.setOutlineColor(sf::Color::White);
-	levelBackButton.setPosition(SCREEN_WIDTH * 0.1, SCREEN_HEIGHT * 0.9);
+    firingSpeedUpgradeButtonCost.setPosition(
+        SCREEN_WIDTH / 5 * 4,
+        SCREEN_HEIGHT / 2 + 100
+    );
 
-	//Play easy button (Level)
-	levelPlayButtonEasy.setFont(font);
+    // Back button (Level)
+    levelBackButton.setFont(font);
+    levelBackButton.setString("Back");
+    levelBackButton.setCharacterSize(50);
+    levelBackButton.setFillColor(sf::Color::White);
+    levelBackButton.setOutlineThickness(2);
+    levelBackButton.setOutlineColor(sf::Color::White);
+    levelBackButton.setPosition(
+        SCREEN_WIDTH * 0.1,
+        SCREEN_HEIGHT * 0.9
+    );
+
+    //Play easy button (Level)
+    levelPlayButtonEasy.setFont(font);
     levelPlayButtonEasy.setString("Easy");
     levelPlayButtonEasy.setCharacterSize(40);
     levelPlayButtonEasy.setFillColor(sf::Color::White);
     levelPlayButtonEasy.setOutlineThickness(2);
     levelPlayButtonEasy.setOutlineColor(sf::Color::Yellow);
-    levelPlayButtonEasy.setPosition(SCREEN_WIDTH * 0.25, SCREEN_HEIGHT * 0.25);
+    levelPlayButtonEasy.setPosition(
+        SCREEN_WIDTH * 0.25,
+        SCREEN_HEIGHT * 0.25
+    );
 
     //Play medium button (Level)
     levelPlayButtonMedium.setFont(font);
@@ -920,7 +1077,10 @@ void Game::initializeButtons()
     levelPlayButtonMedium.setFillColor(sf::Color::White);
     levelPlayButtonMedium.setOutlineThickness(2);
     levelPlayButtonMedium.setOutlineColor(sf::Color::Yellow);
-    levelPlayButtonMedium.setPosition(SCREEN_WIDTH * 0.65, SCREEN_HEIGHT * 0.25);
+    levelPlayButtonMedium.setPosition(
+        SCREEN_WIDTH * 0.65,
+        SCREEN_HEIGHT * 0.25
+    );
 
     //Play hard button (Level)
     levelPlayButtonHard.setFont(font);
@@ -929,7 +1089,10 @@ void Game::initializeButtons()
     levelPlayButtonHard.setFillColor(sf::Color::White);
     levelPlayButtonHard.setOutlineThickness(2);
     levelPlayButtonHard.setOutlineColor(sf::Color::Yellow);
-    levelPlayButtonHard.setPosition(SCREEN_WIDTH * 0.25, SCREEN_HEIGHT * 0.65);
+    levelPlayButtonHard.setPosition(
+        SCREEN_WIDTH * 0.25,
+        SCREEN_HEIGHT * 0.65
+    );
 
     //Play infinite button (Level)
     levelPlayButtonInfinite.setFont(font);
@@ -938,97 +1101,130 @@ void Game::initializeButtons()
     levelPlayButtonInfinite.setFillColor(sf::Color::White);
     levelPlayButtonInfinite.setOutlineThickness(2);
     levelPlayButtonInfinite.setOutlineColor(sf::Color::Yellow);
-    levelPlayButtonInfinite.setPosition(SCREEN_WIDTH * 0.65, SCREEN_HEIGHT * 0.65);
+    levelPlayButtonInfinite.setPosition(
+        SCREEN_WIDTH * 0.65,
+        SCREEN_HEIGHT * 0.65
+    );
 
     // Aiming (Instructions)
-    instrAiming.setFont(font);
-    instrAiming.setString("Aiming: Move Mouse");
-    instrAiming.setCharacterSize(50);
-    instrAiming.setFillColor(sf::Color::White);
-    instrAiming.setOutlineThickness(2);
-    instrAiming.setOutlineColor(sf::Color::Cyan);
-    instrAiming.setPosition(SCREEN_WIDTH / 100 * 35, SCREEN_HEIGHT / 100 * 30);
+    controlsAiming.setFont(font);
+    controlsAiming.setString("Aiming: Move Mouse");
+    controlsAiming.setCharacterSize(50);
+    controlsAiming.setFillColor(sf::Color::White);
+    controlsAiming.setOutlineThickness(2);
+    controlsAiming.setOutlineColor(sf::Color::Cyan);
+    controlsAiming.setPosition(
+        SCREEN_WIDTH / 100 * 35,
+        SCREEN_HEIGHT / 100 * 30
+    );
 
     // Controls (Instructions)
-    instrControls.setFont(font);
-    instrControls.setString("Controls:");
-    instrControls.setCharacterSize(70);
-    instrControls.setFillColor(sf::Color::White);
-    instrControls.setOutlineThickness(2);
-    instrControls.setOutlineColor(sf::Color::White);
-    instrControls.setPosition(SCREEN_WIDTH / 100 * 42, SCREEN_HEIGHT / 100 * 5);
+    controlsTitle.setFont(font);
+    controlsTitle.setString("Controls:");
+    controlsTitle.setCharacterSize(70);
+    controlsTitle.setFillColor(sf::Color::White);
+    controlsTitle.setOutlineThickness(2);
+    controlsTitle.setOutlineColor(sf::Color::White);
+    controlsTitle.setPosition(
+        SCREEN_WIDTH / 100 * 42,
+        SCREEN_HEIGHT / 100 * 5
+    );
 
     // Health bar (Instructions)
-    instrHealthBar.setFont(font);
-    instrHealthBar.setString("Health --->");
-    instrHealthBar.setCharacterSize(25);
-    instrHealthBar.setFillColor(sf::Color::White);
-    instrHealthBar.setOutlineThickness(2);
-    instrHealthBar.setOutlineColor(sf::Color::Green);
-    instrHealthBar.setPosition(SCREEN_WIDTH / 100 * 85, SCREEN_HEIGHT / 100 * 2);
+    controlsHealthBar.setFont(font);
+    controlsHealthBar.setString("Health --->");
+    controlsHealthBar.setCharacterSize(25);
+    controlsHealthBar.setFillColor(sf::Color::White);
+    controlsHealthBar.setOutlineThickness(2);
+    controlsHealthBar.setOutlineColor(sf::Color::Green);
+    controlsHealthBar.setPosition(
+        SCREEN_WIDTH / 100 * 85,
+        SCREEN_HEIGHT / 100 * 2
+    );
 
     // Mana ability (Instructions)
-    instrManaAbility.setFont(font);
-    instrManaAbility.setString("Mana ability: SPACE");
-    instrManaAbility.setCharacterSize(50);
-    instrManaAbility.setFillColor(sf::Color::White);
-    instrManaAbility.setOutlineThickness(2);
-    instrManaAbility.setOutlineColor(sf::Color::Cyan);
-    instrManaAbility.setPosition(SCREEN_WIDTH / 100 * 35, SCREEN_HEIGHT / 100 * 50);
+    controlsManaAbility.setFont(font);
+    controlsManaAbility.setString("Mana ability: SPACE");
+    controlsManaAbility.setCharacterSize(50);
+    controlsManaAbility.setFillColor(sf::Color::White);
+    controlsManaAbility.setOutlineThickness(2);
+    controlsManaAbility.setOutlineColor(sf::Color::Cyan);
+    controlsManaAbility.setPosition(
+        SCREEN_WIDTH / 100 * 35,
+        SCREEN_HEIGHT / 100 * 50
+    );
 
     // Mana bar (Instructions)
-    instrManaBar.setFont(font);
-    instrManaBar.setString("Mana bar --->");
-    instrManaBar.setCharacterSize(25);
-    instrManaBar.setFillColor(sf::Color::White);
-    instrManaBar.setOutlineThickness(2);
-    instrManaBar.setOutlineColor(sf::Color::Cyan);
-    instrManaBar.setPosition(SCREEN_WIDTH / 100 * 82, SCREEN_HEIGHT / 100 * 7);
+    controlsManaBar.setFont(font);
+    controlsManaBar.setString("Mana bar --->");
+    controlsManaBar.setCharacterSize(25);
+    controlsManaBar.setFillColor(sf::Color::White);
+    controlsManaBar.setOutlineThickness(2);
+    controlsManaBar.setOutlineColor(sf::Color::Cyan);
+    controlsManaBar.setPosition(
+        SCREEN_WIDTH / 100 * 82,
+        SCREEN_HEIGHT / 100 * 7
+    );
 
     // Movement (Instructions)
-    instrMovement.setFont(font);
-    instrMovement.setString("Move: WASD");
-    instrMovement.setCharacterSize(50);
-    instrMovement.setFillColor(sf::Color::White);
-    instrMovement.setOutlineThickness(2);
-    instrMovement.setOutlineColor(sf::Color::Cyan);
-    instrMovement.setPosition(SCREEN_WIDTH / 100 * 35, SCREEN_HEIGHT / 100 * 20);
+    controlsMovement.setFont(font);
+    controlsMovement.setString("Move: WASD");
+    controlsMovement.setCharacterSize(50);
+    controlsMovement.setFillColor(sf::Color::White);
+    controlsMovement.setOutlineThickness(2);
+    controlsMovement.setOutlineColor(sf::Color::Cyan);
+    controlsMovement.setPosition(
+        SCREEN_WIDTH / 100 * 35,
+        SCREEN_HEIGHT / 100 * 20
+    );
 
     // Game pausing (Instructions)
-    instrPauseGame.setFont(font);
-    instrPauseGame.setString("Pause: ESC");
-    instrPauseGame.setCharacterSize(50);
-    instrPauseGame.setFillColor(sf::Color::White);
-    instrPauseGame.setOutlineThickness(2);
-    instrPauseGame.setOutlineColor(sf::Color::Cyan);
-    instrPauseGame.setPosition(SCREEN_WIDTH / 100 * 35, SCREEN_HEIGHT / 100 * 70);
+    controlsPauseGame.setFont(font);
+    controlsPauseGame.setString("Pause: ESC");
+    controlsPauseGame.setCharacterSize(50);
+    controlsPauseGame.setFillColor(sf::Color::White);
+    controlsPauseGame.setOutlineThickness(2);
+    controlsPauseGame.setOutlineColor(sf::Color::Cyan);
+    controlsPauseGame.setPosition(
+        SCREEN_WIDTH / 100 * 35,
+        SCREEN_HEIGHT / 100 * 70
+    );
 
     // Start game button (Instructions)
-    instrExitButton.setFont(font);
-    instrExitButton.setString("Back");
-    instrExitButton.setCharacterSize(50);
-    instrExitButton.setFillColor(sf::Color::White);
-    instrExitButton.setOutlineThickness(2);
-    instrExitButton.setOutlineColor(sf::Color::White);
-    instrExitButton.setPosition(SCREEN_WIDTH / 100 * 45, SCREEN_HEIGHT / 100 * 85);
+    controlsExitButton.setFont(font);
+    controlsExitButton.setString("Back");
+    controlsExitButton.setCharacterSize(50);
+    controlsExitButton.setFillColor(sf::Color::White);
+    controlsExitButton.setOutlineThickness(2);
+    controlsExitButton.setOutlineColor(sf::Color::White);
+    controlsExitButton.setPosition(
+        SCREEN_WIDTH / 100 * 45,
+        SCREEN_HEIGHT / 100 * 85
+    );
 
     // Shooting (Instructions)
-    instrShooting.setFont(font);
-    instrShooting.setString("Shoot: LEFT CLICK");
-    instrShooting.setCharacterSize(50);
-    instrShooting.setFillColor(sf::Color::White);
-    instrShooting.setOutlineThickness(2);
-    instrShooting.setOutlineColor(sf::Color::Cyan);
-    instrShooting.setPosition(SCREEN_WIDTH / 100 * 35, SCREEN_HEIGHT / 100 * 40);
+    controlsShooting.setFont(font);
+    controlsShooting.setString("Shoot: LEFT CLICK");
+    controlsShooting.setCharacterSize(50);
+    controlsShooting.setFillColor(sf::Color::White);
+    controlsShooting.setOutlineThickness(2);
+    controlsShooting.setOutlineColor(sf::Color::Cyan);
+    controlsShooting.setPosition(
+        SCREEN_WIDTH / 100 * 35,
+        SCREEN_HEIGHT / 100 * 40
+    );
 
     // Shop (Instructions)
-    instrShop.setFont(font);
-    instrShop.setString("Open shop: E");
-    instrShop.setCharacterSize(50);
-    instrShop.setFillColor(sf::Color::White);
-    instrShop.setOutlineThickness(2);
-    instrShop.setOutlineColor(sf::Color::Cyan);
-    instrShop.setPosition(SCREEN_WIDTH / 100 * 35, SCREEN_HEIGHT / 100 * 60);
+    controlsShop.setFont(font);
+    controlsShop.setString("Open shop: E");
+    controlsShop.setCharacterSize(50);
+    controlsShop.setFillColor(sf::Color::White);
+    controlsShop.setOutlineThickness(2);
+    controlsShop.setOutlineColor(sf::Color::Cyan);
+    controlsShop.setPosition(
+        SCREEN_WIDTH / 100 * 35,
+        SCREEN_HEIGHT / 100 * 60
+    );
 
     // GM_title
     GM_title.setFont(font);
@@ -1037,7 +1233,10 @@ void Game::initializeButtons()
     GM_title.setFillColor(sf::Color::White);
     GM_title.setOutlineThickness(2);
     GM_title.setOutlineColor(sf::Color::Cyan);
-    GM_title.setPosition(SCREEN_WIDTH / 100 * 35, SCREEN_HEIGHT / 100 * 20);
+    GM_title.setPosition(
+        SCREEN_WIDTH / 100 * 35,
+        SCREEN_HEIGHT / 100 * 20
+    );
 
     // GM_levelButton
     GM_levelButton.setFont(font);
@@ -1046,7 +1245,10 @@ void Game::initializeButtons()
     GM_levelButton.setFillColor(sf::Color::White);
     GM_levelButton.setOutlineThickness(2);
     GM_levelButton.setOutlineColor(sf::Color::White);
-    GM_levelButton.setPosition(SCREEN_WIDTH / 100 * 35, SCREEN_HEIGHT / 100 * 40);
+    GM_levelButton.setPosition(
+        SCREEN_WIDTH / 100 * 35,
+        SCREEN_HEIGHT / 100 * 40
+    );
 
     // GM_shopButton
     GM_shopButton.setFont(font);
@@ -1055,7 +1257,10 @@ void Game::initializeButtons()
     GM_shopButton.setFillColor(sf::Color::White);
     GM_shopButton.setOutlineThickness(2);
     GM_shopButton.setOutlineColor(sf::Color::White);
-    GM_shopButton.setPosition(SCREEN_WIDTH / 100 * 35, SCREEN_HEIGHT / 100 * 50);
+    GM_shopButton.setPosition(
+        SCREEN_WIDTH / 100 * 35,
+        SCREEN_HEIGHT / 100 * 50
+    );
 
     // GM_specialMisionsButton
     GM_specialMisionsButton.setFont(font);
@@ -1064,7 +1269,10 @@ void Game::initializeButtons()
     GM_specialMisionsButton.setFillColor(sf::Color::White);
     GM_specialMisionsButton.setOutlineThickness(2);
     GM_specialMisionsButton.setOutlineColor(sf::Color::White);
-    GM_specialMisionsButton.setPosition(SCREEN_WIDTH / 100 * 35, SCREEN_HEIGHT / 100 * 60);
+    GM_specialMisionsButton.setPosition(
+        SCREEN_WIDTH / 100 * 35,
+        SCREEN_HEIGHT / 100 * 60
+    );
 
     // GM_backButton
     GM_backButton.setFont(font);
@@ -1073,7 +1281,10 @@ void Game::initializeButtons()
     GM_backButton.setFillColor(sf::Color::White);
     GM_backButton.setOutlineThickness(2);
     GM_backButton.setOutlineColor(sf::Color::White);
-    GM_backButton.setPosition(SCREEN_WIDTH / 100 * 35, SCREEN_HEIGHT / 100 * 70);
+    GM_backButton.setPosition(
+        SCREEN_WIDTH / 100 * 35,
+        SCREEN_HEIGHT / 100 * 70
+    );
 
     // GMSHOP_BackButton
     GM_shopBackButton.setFont(font);
@@ -1082,7 +1293,10 @@ void Game::initializeButtons()
     GM_shopBackButton.setFillColor(sf::Color::White);
     GM_shopBackButton.setOutlineThickness(2);
     GM_shopBackButton.setOutlineColor(sf::Color::White);
-    GM_shopBackButton.setPosition(SCREEN_WIDTH / 100 * 95, 0);
+    GM_shopBackButton.setPosition(
+        SCREEN_WIDTH / 100 * 95,
+        0
+    );
 
     // GMSHOP_MoneyCounter
     GM_shopMoneyCounter.setFont(font);
@@ -1091,9 +1305,13 @@ void Game::initializeButtons()
     GM_shopMoneyCounter.setFillColor(sf::Color::White);
     GM_shopMoneyCounter.setOutlineThickness(2);
     GM_shopMoneyCounter.setOutlineColor(sf::Color::Yellow);
-    GM_shopMoneyCounter.setPosition(0, 0);
-
+    GM_shopMoneyCounter.setPosition(
+        0,
+        0
+    );
 }
+
+
 // -------------------------------------------- Initializing Textures --------------------------------------------
 
 void Game::initializeTextures()
@@ -1140,6 +1358,12 @@ void Game::initializeRectangles()
 {
     background.setSize(sf::Vector2f(SCREEN_WIDTH, SCREEN_HEIGHT));
     background.setTexture(&backgroundTexture);
+
+    exitPanelOutline.setSize(sf::Vector2f(SCREEN_WIDTH / 2, SCREEN_HEIGHT / 4));
+    exitPanelOutline.setPosition(sf::Vector2f(SCREEN_WIDTH / 4, SCREEN_HEIGHT / 8 * 3));
+    exitPanelOutline.setOutlineColor(sf::Color::Green);
+    exitPanelOutline.setOutlineThickness(5);
+    exitPanelOutline.setFillColor(sf::Color::Black);
 
     player.setPosition(SCREEN_WIDTH / 2 - player.getSize().x / 2, SCREEN_HEIGHT / 2 - player.getSize().y / 2);
     player.setTexture(&playerTexture);
@@ -1202,26 +1426,64 @@ void Game::initializeRectangles()
 
     GM_shopPlayerModel.setTexture(&playerTexture);
     GM_shopPlayerModel.setSize(sf::Vector2f(playerSize, playerSize));
+    GM_shopMovableList.push_back(&GM_shopPlayerModel);
 
-	GM_shopUpgradeButton1.setTexture(&shockwaveScreenOutlineTexture);
+	GM_shopUpgradeButton1.setTexture(&levelTabletTexture);
     GM_shopUpgradeButton1.setSize(GM_shopUpgradeButtonSize);
+    GM_shopMovableList.push_back(&GM_shopUpgradeButton1);
 
-    GM_shopUpgradeButton2.setTexture(&shockwaveScreenOutlineTexture);
+    GM_shopUpgradeButton2.setTexture(&levelTabletTexture);
     GM_shopUpgradeButton2.setSize(GM_shopUpgradeButtonSize);
+    GM_shopMovableList.push_back(&GM_shopUpgradeButton2);
 
-    GM_shopUpgradeButton3.setTexture(&shockwaveScreenOutlineTexture);
+    GM_shopUpgradeButton3.setTexture(&levelTabletTexture);
     GM_shopUpgradeButton3.setSize(GM_shopUpgradeButtonSize);
+    GM_shopMovableList.push_back(&GM_shopUpgradeButton3);
+
+    GM_shopUpgradeButton4.setTexture(&levelTabletTexture);
+    GM_shopUpgradeButton4.setSize(GM_shopUpgradeButtonSize);
+    GM_shopMovableList.push_back(&GM_shopUpgradeButton4);
+
+    GM_shopUpgradeButton5.setTexture(&levelTabletTexture);
+    GM_shopUpgradeButton5.setSize(GM_shopUpgradeButtonSize);
+    GM_shopMovableList.push_back(&GM_shopUpgradeButton5);
+
+    GM_shopUpgradeButton6.setTexture(&levelTabletTexture);
+    GM_shopUpgradeButton6.setSize(GM_shopUpgradeButtonSize);
+    GM_shopMovableList.push_back(&GM_shopUpgradeButton6);
 }
 
 // -------------------------------------------- Reset GM shop object positions --------------------------------------------
 
 void Game::setDefaultGMShopObjectPositions()
 {
-    GM_shopPlayerModel.setPosition(defaultPlayerModelPosition);
-    GM_shopUpgradeButton1.setPosition(defaultPlayerModelPosition.x - SCREEN_WIDTH / 8, defaultPlayerModelPosition.y - SCREEN_HEIGHT / 8);
-    GM_shopUpgradeButton2.setPosition(defaultPlayerModelPosition.x, defaultPlayerModelPosition.y - SCREEN_HEIGHT / 8);
-    GM_shopUpgradeButton3.setPosition(defaultPlayerModelPosition.x + SCREEN_WIDTH / 8, defaultPlayerModelPosition.y - SCREEN_HEIGHT / 8);
-
+    GM_shopPlayerModel.setPosition(
+        defaultPlayerModelPosition
+    );
+    GM_shopUpgradeButton1.setPosition(
+        defaultPlayerModelPosition.x - SCREEN_WIDTH / 4 - GM_shopUpgradeButton1.getSize().x / 2 + playerSize / 2, 
+        defaultPlayerModelPosition.y - SCREEN_HEIGHT / 4
+    );
+    GM_shopUpgradeButton2.setPosition(
+        defaultPlayerModelPosition.x - GM_shopUpgradeButton1.getSize().x / 2 + playerSize / 2, 
+        defaultPlayerModelPosition.y - SCREEN_HEIGHT / 4
+    );
+    GM_shopUpgradeButton3.setPosition(
+        defaultPlayerModelPosition.x + SCREEN_WIDTH / 4 - GM_shopUpgradeButton1.getSize().x / 2 + playerSize / 2, 
+        defaultPlayerModelPosition.y - SCREEN_HEIGHT / 4
+    );
+    GM_shopUpgradeButton4.setPosition(
+        defaultPlayerModelPosition.x - SCREEN_WIDTH / 4 - GM_shopUpgradeButton1.getSize().x / 2 + playerSize / 2,
+        defaultPlayerModelPosition.y - SCREEN_HEIGHT / 4 * 3
+    );
+    GM_shopUpgradeButton5.setPosition(
+        defaultPlayerModelPosition.x - GM_shopUpgradeButton1.getSize().x / 2 + playerSize / 2,
+        defaultPlayerModelPosition.y - SCREEN_HEIGHT / 4 * 3
+    );
+    GM_shopUpgradeButton6.setPosition(
+        defaultPlayerModelPosition.x + SCREEN_WIDTH / 4 - GM_shopUpgradeButton1.getSize().x / 2 + playerSize / 2,
+        defaultPlayerModelPosition.y - SCREEN_HEIGHT / 4 * 3
+    );
 }
 
 
@@ -1368,12 +1630,14 @@ void Game::update(float deltaTime)
     {
         damageOutlineRenderTime = gameTime + 0.1f;
     }
+
     playerHealth -= Enemy::checkPlayerTouch(player, playerHealth);
 	playerHealth -= applyBorderDamage();
     updateHealthBar();
     updateManaBar();
     updateMoneyText();
     enemySpawnTimerMax = 4.f - 3 * (gameTime / 60.f);
+
     if (gameTime < winningSurvivalTime)
     {
         enemySpawnTimer += Enemy::trySpawn(enemySpawnTimer, enemySpawnTimerMax, deltaTime, enemiesPerWave, difficulty, gameTime);
@@ -1389,7 +1653,6 @@ void Game::update(float deltaTime)
         bossSpawnTimer += deltaTime;
     }
 
-    // !!! SALABOT BOSS ABILITY !!!
     Enemy::tryActivateBossAbility(deltaTime, &bossAbilityTimer, &bossAbilityTimerMax);
 
     if (gameTime >= winningSurvivalTime && Enemy::enemyList.size() == 0 || sf::Keyboard::isKeyPressed(sf::Keyboard::F))
@@ -1406,6 +1669,8 @@ void Game::update(float deltaTime)
     Bullet::checkRemove(window);
     Bullet::checkCollisions(window);
     gameMoney += Enemy::hitRemove();
+
+    // SALABOT MANAS SKAITĪŠANU (NESTRĀDĀ AR PIERCING BULLETS)
     playerMana += Bullet::hitRemove();
 
 	if (playerMana > maxPlayerMana)
@@ -1443,6 +1708,14 @@ void Game::renderMenu()
     window.draw(controlsButton);
     window.draw(settingsButton);
     window.draw(exitButton);
+
+    if (exitPanelOpen)
+    {
+        window.draw(exitPanelOutline);
+        window.draw(exitPanelYesButton);
+        window.draw(exitPanelNoButton);
+        window.draw(exitPanelTitle);
+    }
 
     window.display();
 }
@@ -1495,7 +1768,7 @@ void Game::renderPause()
 }
 // -------------------------------------------- INSTRUCTIONS --------------------------------------------
 
-void Game::renderInstructions()
+void Game::renderControls()
 {
     window.clear();
     window.draw(background);
@@ -1503,16 +1776,16 @@ void Game::renderInstructions()
     window.draw(healthBar);
     window.draw(manaBarBorder);
     window.draw(manaBar);
-    window.draw(instrAiming);
-    window.draw(instrControls);
-    window.draw(instrHealthBar);
-    window.draw(instrManaAbility);
-    window.draw(instrManaBar);
-    window.draw(instrMovement);
-    window.draw(instrPauseGame);
-    window.draw(instrExitButton);
-    window.draw(instrShooting);
-    window.draw(instrShop);
+    window.draw(controlsAiming);
+    window.draw(controlsTitle);
+    window.draw(controlsHealthBar);
+    window.draw(controlsManaAbility);
+    window.draw(controlsManaBar);
+    window.draw(controlsMovement);
+    window.draw(controlsPauseGame);
+    window.draw(controlsExitButton);
+    window.draw(controlsShooting);
+    window.draw(controlsShop);
     window.display();
 }
 // -------------------------------------------- GAME OVER --------------------------------------------
@@ -1594,6 +1867,9 @@ void Game::renderGMShop()
     window.draw(GM_shopUpgradeButton1);
     window.draw(GM_shopUpgradeButton2);
     window.draw(GM_shopUpgradeButton3);
+    window.draw(GM_shopUpgradeButton4);
+    window.draw(GM_shopUpgradeButton5);
+    window.draw(GM_shopUpgradeButton6);
 
     window.display();
 }

@@ -14,7 +14,7 @@ public:
     void run();
 
 public:
-    //Constant game settings
+    // -------------------------- Constant game settings  -------------------------- 
     static constexpr int SCREEN_WIDTH = 1280;
     static constexpr int SCREEN_HEIGHT = 720;
     static constexpr float defaultPlayerHealth = 100.f;
@@ -22,32 +22,37 @@ public:
 	static constexpr float defaultPlayerManaMax = 100.f;
     static constexpr int playerSize = 50;
 	static constexpr float defaultBulletSize = 10.f;
-    static constexpr float openingCooldownMax = .2f;
+    static constexpr float globalPanelOpeningCooldownMax = .2f;
+
+    sf::RenderWindow window;
+    sf::Font font;
 
 
-	//global variables
+
+	// -------------------------- global variables -------------------------- 
     int gameMoney = 0;
     int globalMoney = 0;
     float gameTime = 0;
 
 private:
-    //game states
-    enum class GameState { MENU, PLAY, INSTRUCTIONS, PAUSE, SETTINGS, GAME_OVER, SHOP,
+    // -------------------------- Switchables -------------------------- 
+    enum class GameState { MENU, PLAY, CONTROLS, PAUSE, SETTINGS, GAME_OVER, SHOP,
         GM_GAMEMENU, GM_LEVEL, GM_SHOP };
 
     enum class ShotMode { RAPID, SHOTGUN, BOMB, PIERCING };
 
-    sf::RenderWindow window;
-    sf::Font font;
+    GameState state;
+    ShotMode shotMode;
 
-    // Game Menu (GM)
+    //  -------------------------- Game Menu (GM) -------------------------- 
     sf::Text GM_levelButton;
     sf::Text GM_shopButton;
     sf::Text GM_title;
     sf::Text GM_specialMisionsButton;
     sf::Text GM_backButton;
 
-    // Game Menu (GM) Shop
+    //  -------------------------- Game Menu (GM) Shop -------------------------- 
+    
     // Variables
     sf::Vector2f defaultPlayerModelPosition;
     sf::Vector2f GM_shopMousePos;
@@ -62,8 +67,13 @@ private:
     sf::RectangleShape GM_shopUpgradeButton1;
     sf::RectangleShape GM_shopUpgradeButton2;
     sf::RectangleShape GM_shopUpgradeButton3;
+    sf::RectangleShape GM_shopUpgradeButton4;
+    sf::RectangleShape GM_shopUpgradeButton5;
+    sf::RectangleShape GM_shopUpgradeButton6;
 
-    // Game Menu (GM) Level
+    std::vector<sf::RectangleShape*> GM_shopMovableList;
+
+    //  -------------------------- Game Menu (GM) Level -------------------------- 
     sf::RectangleShape levelTablet;
     sf::Text levelBackButton;
     sf::Text levelPlayButtonEasy;
@@ -71,28 +81,34 @@ private:
     sf::Text levelPlayButtonHard;
     sf::Text levelPlayButtonInfinite;
 
-    // Main Menu
+    // --------------------------  Main Menu -------------------------- 
     sf::Text playButton;
     sf::Text menuContinueButton;
     sf::Text controlsButton;
     sf::Text settingsButton;
     sf::Text exitButton;
 	sf::Text title;
+    sf::Text exitPanelYesButton;
+    sf::Text exitPanelNoButton;
+    sf::Text exitPanelTitle;
+    sf::RectangleShape exitPanelOutline;
+    bool exitPanelOpen;
+    float exitPanelOpeningCooldown;
 
-    // Settings
+    //  -------------------------- Settings -------------------------- 
     sf::Text backButton;
 
-    // Pause
+    // --------------------------  Pause -------------------------- 
     sf::Text pauseTitle;
     sf::Text continueButton;
     sf::Text mainMenuButton;
 
-    // Game Over
+    //  -------------------------- Game Over -------------------------- 
     sf::Text gameOverTitle;
     sf::Text restartButton;
     sf::Text gameOverMainMenuButton;
 
-    // Shop
+    // -------------------------- Shop -------------------------- 
     sf::Text healthUpgradeButtonCost;
 	sf::Text movementSpeedUpgradeButtonCost;
 	sf::Text firingSpeedUpgradeButtonCost;
@@ -102,19 +118,19 @@ private:
 	sf::Text firingSpeedUpgradeButton;
     sf::Text closeInfoText;
 
-    // Instructions
-    sf::Text instrAiming;
-    sf::Text instrControls;
-    sf::Text instrHealthBar;
-    sf::Text instrManaAbility;
-    sf::Text instrManaBar;
-    sf::Text instrMovement;
-    sf::Text instrPauseGame;
-    sf::Text instrExitButton;
-    sf::Text instrShooting;
-    sf::Text instrShop;
+    //  -------------------------- Controls -------------------------- 
+    sf::Text controlsAiming;
+    sf::Text controlsTitle;
+    sf::Text controlsHealthBar;
+    sf::Text controlsManaAbility;
+    sf::Text controlsManaBar;
+    sf::Text controlsMovement;
+    sf::Text controlsPauseGame;
+    sf::Text controlsExitButton;
+    sf::Text controlsShooting;
+    sf::Text controlsShop;
 
-    //Game elements
+    // -------------------------- Game elements -------------------------- 
 	sf::RectangleShape background;
 	sf::RectangleShape shockwaveScreenOutline;
     sf::RectangleShape damageOutline;
@@ -129,6 +145,9 @@ private:
 	sf::Text healthText;
 	sf::Text manaText;
 	sf::Text moneyText;
+
+    // -------------------------- Textures -------------------------- 
+
 	sf::Texture levelTabletTexture;
 	sf::Texture shockwaveTexture;
     sf::Texture playerTexture;
@@ -138,22 +157,18 @@ private:
     sf::Texture damageOutlineTexture;
 
 
-
-    GameState state;
-    ShotMode shotMode;
-
-    //shop costs
+    // -------------------------- shop costs -------------------------- 
     int healthUpgradeCost;
 	int movementSpeedUpgradeCost;
 	int firingSpeedUpgradeCost;
 
-    //player stats 
+    // -------------------------- player stats  -------------------------- 
 	float playerMana;
 	float maxPlayerMana;
     float playerHealth;
     float playerSpeed;
 
-    //game stats
+    // -------------------------- game stats -------------------------- 
 	float borderDamage;
 	float shockwaveRenderTime;
 	float damageOutlineRenderTime;
@@ -162,7 +177,7 @@ private:
     float difficulty;
     bool continueAvailable;
 
-	//timers
+	// -------------------------- timers -------------------------- 
     float bossSpawnTimer;
     float bossSpawnTimerMax;
     float bossAbilityTimer;
@@ -175,11 +190,11 @@ private:
 
     sf::Clock clock;
 
-	//state updating methods
-    void handleMenuInput();
+	// -------------------------- state updating methods -------------------------- 
+    void handleMenuInput(float deltaTime);
     void handleSettingsInput();
     void handlePauseInput(float deltaTime);
-    void handleInstructionsInput();
+    void handleControlsInput();
     void handleGameInput(float deltaTime);
     void handleGameOverInput();
 	void handleShopInput(float deltaTime);
@@ -187,7 +202,7 @@ private:
     void handleGMGameMenuInput();
     void handleGMShopInput();
 
-	//drawing and updating methods
+	// -------------------------- drawing and updating methods -------------------------- 
 	void initializeButtons();
 	void initializeTextures();
 	void initializeRectangles();
@@ -204,11 +219,11 @@ private:
     void resetGameSettings();
     void update(float deltaTime);
 
-	//rendering methods
+	// -------------------------- rendering methods -------------------------- 
     void renderMenu();
     void renderSettings();
     void renderPause();
-    void renderInstructions();
+    void renderControls();
     void renderGame();
     void renderGameOver();
 	void renderShop();

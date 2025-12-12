@@ -39,3 +39,21 @@ int main() {
 * Samazinât attâlumu, no kura ienaidnieki var nodarît bojâjumu spçlçtâjam
 * Pievienot ienaidniekus, kas nomirstot izmet no sevis divus parastos ienaidniekus?
 */
+
+/*
+void Game::resetGameSettings()
+{
+
+
+
+
+
+
+
+
+    
+    player.setPosition(SCREEN_WIDTH / 2 - player.getSize().x / 2, SCREEN_HEIGHT / 2 - player.getSize().y / 2);
+    Enemy::enemyList.clear();
+    Bullet::bulletList.clear();
+}
+*/
