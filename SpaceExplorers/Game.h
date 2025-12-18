@@ -17,9 +17,6 @@ public:
     // -------------------------- Constant game settings  -------------------------- 
     static constexpr int SCREEN_WIDTH = 1280;
     static constexpr int SCREEN_HEIGHT = 720;
-    static constexpr float defaultPlayerHealth = 100.f;
-	static constexpr float defaultPlayerSpeed = 100.f;
-	static constexpr float defaultPlayerManaMax = 100.f;
     static constexpr int playerSize = 50;
 	static constexpr float defaultBulletSize = 10.f;
     static constexpr float globalPanelOpeningCooldownMax = .2f;
@@ -35,14 +32,11 @@ public:
     float gameTime = 0;
 
 private:
-    // -------------------------- Switchables -------------------------- 
+    // -------------------------- Game States -------------------------- 
     enum class GameState { MENU, PLAY, CONTROLS, PAUSE, SETTINGS, GAME_OVER, SHOP,
         GM_GAMEMENU, GM_LEVEL, GM_SHOP };
 
-    enum class ShotMode { RAPID, SHOTGUN, BOMB, PIERCING };
-
     GameState state;
-    ShotMode shotMode;
 
     //  -------------------------- Game Menu (GM) -------------------------- 
     sf::Text GM_levelButton;
@@ -109,14 +103,25 @@ private:
     sf::Text gameOverMainMenuButton;
 
     // -------------------------- Shop -------------------------- 
+	sf::Text shopTitle;
+    sf::Text closeInfoText;
+
     sf::Text healthUpgradeButtonCost;
 	sf::Text movementSpeedUpgradeButtonCost;
 	sf::Text firingSpeedUpgradeButtonCost;
-	sf::Text shopTitle;
+   
 	sf::Text healthUpgradeButton;
 	sf::Text movementSpeedUpgradeButton;
 	sf::Text firingSpeedUpgradeButton;
-    sf::Text closeInfoText;
+
+    sf::Text tripleShotUpgradeButton;
+    sf::Text explosiveShotUpgradeButton;
+    sf::Text piercingShotUpgradeButton;
+
+    sf::Text tripleShotUpgradeButtonCost;
+    sf::Text explosiveShotUpgradeButtonCost;
+    sf::Text piercingShotUpgradeButtonCost;
+
 
     //  -------------------------- Controls -------------------------- 
     sf::Text controlsAiming;
@@ -158,15 +163,37 @@ private:
 
 
     // -------------------------- shop costs -------------------------- 
+    bool isTripleShotBought;
+    bool isExplosiveShotBought;
+    bool isPiercingShotBought;
+    
     int healthUpgradeCost;
 	int movementSpeedUpgradeCost;
 	int firingSpeedUpgradeCost;
+    int tripleShotUpgradeCost;
+    int explosiveShotUpgradeCost;
+    int piercingShotUpgradeCost;
+    float healthUpgradeCostIncrement;
+    float movementSpeedUpgradeCostIncrement;
+    float firingSpeedUpgradeCostIncrement;
+    float healthIncrementPerUpgrade;
+    float movementSpeedIncrementPerUpgrade;
+    float firingSpeedIncrementPerUpgrade;
+    int maxHealthUpgradeCount;
+    int maxMovementSpeedUpgradeCount;
+    int maxFiringSpeedUpgradeCount;
+    int currentHealthUpgradeCount;
+    int currentMovementSpeedUpgradeCount;
+    int currentFiringSpeedUpgradeCount;
 
     // -------------------------- player stats  -------------------------- 
-	float playerMana;
+    float startingPlayerHealth;
+    float startingPlayerSpeed;
+    float startingPlayerManaMax;
+    float playerMana;
 	float maxPlayerMana;
     float playerHealth;
-    float playerSpeed;
+    float playerMovementSpeed;
 
     // -------------------------- game stats -------------------------- 
 	float borderDamage;
@@ -216,7 +243,7 @@ private:
 	void hightlightHower(sf::Text& button, sf::Vector2f mousePos);
     float applyBorderDamage();
 	void activateManaAbility();
-    void resetGameSettings();
+    void setDefaultGameSettings();
     void update(float deltaTime);
 
 	// -------------------------- rendering methods -------------------------- 

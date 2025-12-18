@@ -9,13 +9,6 @@ int main() {
     return 0;
 }
 
-//Pievienot cenas veikalâ
-//Pievienot fonu
-
-//shotgun
-//bomb shooter
-//stun ability
-
 //Pievienot lîmeòus
 // Lîmeòu izvçle ir kâ avîzes raksti, kur var pieteities uz misijâm, bet ir arî viltus piemçram ar skibibi toilet
 // Viltus raksti noved uz citâm minispçlçm???
@@ -36,24 +29,10 @@ int main() {
 * Ienaidnieki izmet naudu, kas spçlçtâjam jâsavâc no zemes?
 * Pievienot skaòas
 * 
-* Samazinât attâlumu, no kura ienaidnieki var nodarît bojâjumu spçlçtâjam
 * Pievienot ienaidniekus, kas nomirstot izmet no sevis divus parastos ienaidniekus?
+* 
+* Daþreiz izðaujas divas lodes pçc kârtas, ja tur, atlaiþ un atkal nospieþ kreiso klikðíi
+* Piercing ðâvieni daþreiz nodara dubultu bojâjumu, bet daþreiz iziet cauri ienaidniekiem
+* Balancçt veikala cenas
 */
 
-/*
-void Game::resetGameSettings()
-{
-
-
-
-
-
-
-
-
-    
-    player.setPosition(SCREEN_WIDTH / 2 - player.getSize().x / 2, SCREEN_HEIGHT / 2 - player.getSize().y / 2);
-    Enemy::enemyList.clear();
-    Bullet::bulletList.clear();
-}
-*/

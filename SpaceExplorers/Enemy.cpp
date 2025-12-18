@@ -39,39 +39,30 @@ bool Enemy::isBossEnemy() const
 
 
 //updating the enemy spawn timer and spawning enemies at randomized locations
-float Enemy::trySpawn(float spawnTimer, float spawnTimerMax, float deltaTime, int enemiesPerWave, float difficulty, float gameTime)
+void Enemy::trySpawn(int enemiesPerWave, float difficulty, float gameTime)
 {
-
-    if (spawnTimer >= spawnTimerMax)
+    for (int i = 0; i < enemiesPerWave; ++i)
     {
-        for (int i = 0; i < enemiesPerWave; ++i)
-        {
-            int edge = rand() % 4;
-            sf::Vector2f spawnPosition;
+        int edge = rand() % 4;
+        sf::Vector2f spawnPosition;
             
-            switch (edge)
-            {
-            case 0: 
-                spawnPosition = sf::Vector2f(static_cast<float>(rand() % Game::SCREEN_WIDTH), -20.f);
-                break;
-            case 1: 
-                spawnPosition = sf::Vector2f(static_cast<float>(rand() % Game::SCREEN_WIDTH), Game::SCREEN_HEIGHT + 20.f);
-                break;
-            case 2: 
-                spawnPosition = sf::Vector2f(-20.f, static_cast<float>(rand() % Game::SCREEN_HEIGHT));
-                break;
-            case 3:
-                spawnPosition = sf::Vector2f(Game::SCREEN_WIDTH + 20.f, static_cast<float>(rand() % Game::SCREEN_HEIGHT));
-                break;
-            }
-
-            new Enemy((20 + rand() % 5) * difficulty, 20, spawnPosition, (5 + rand() % 2) * difficulty * (1 + gameTime / 40), false);
+        switch (edge)
+        {
+        case 0: 
+            spawnPosition = sf::Vector2f(static_cast<float>(rand() % Game::SCREEN_WIDTH), -20.f);
+            break;
+        case 1: 
+            spawnPosition = sf::Vector2f(static_cast<float>(rand() % Game::SCREEN_WIDTH), Game::SCREEN_HEIGHT + 20.f);
+            break;
+        case 2: 
+            spawnPosition = sf::Vector2f(-20.f, static_cast<float>(rand() % Game::SCREEN_HEIGHT));
+            break;
+        case 3:
+            spawnPosition = sf::Vector2f(Game::SCREEN_WIDTH + 20.f, static_cast<float>(rand() % Game::SCREEN_HEIGHT));
+            break;
         }
-        return -spawnTimerMax;
-    }
-    else
-    {
-        return deltaTime;
+
+        new Enemy((20 + rand() % 5) * difficulty, 20, spawnPosition, (5 + rand() % 2) * difficulty * (1 + gameTime / 40), false);
     }
 }
 

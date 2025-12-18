@@ -26,11 +26,10 @@ Game::Game() :
     defaultPlayerModelPosition(
         SCREEN_WIDTH / 2 - playerSize / 2, 
         SCREEN_HEIGHT / 5 * 4 - playerSize / 2),
-    shotMode(ShotMode::RAPID),
     state(GameState::MENU)
         
 {
-    resetGameSettings();
+    setDefaultGameSettings();
     initializeTextures();
     initializeButtons();
 	initializeRectangles();    
@@ -267,7 +266,7 @@ void Game::handleGameOverInput()
 
             if (restartButton.getGlobalBounds().contains(mousePos)) 
             {
-                resetGameSettings();
+                setDefaultGameSettings();
                 state = GameState::PLAY; 
             }
             else if (gameOverMainMenuButton.getGlobalBounds().contains(mousePos)) 
@@ -302,53 +301,124 @@ void Game::handleShopInput(float deltaTime)
             }
         }
 
+        // --- If mouse left button is clicked and upgrade is avaible, add the upgrade ---
         if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) 
         {
             sf::Vector2f mousePos(static_cast<float>(event.mouseButton.x), static_cast<float>(event.mouseButton.y));
 
-            if (healthUpgradeButton.getGlobalBounds().contains(mousePos) || healthUpgradeButtonCost.getGlobalBounds().contains(mousePos)) 
+            // If health upgrade is clicked
+            if ((healthUpgradeButton.getGlobalBounds().contains(mousePos) 
+                || healthUpgradeButtonCost.getGlobalBounds().contains(mousePos))
+                && gameMoney >= healthUpgradeCost 
+                && currentHealthUpgradeCount < maxHealthUpgradeCount) 
             {
-                if (gameMoney >= healthUpgradeCost) 
+                gameMoney -= healthUpgradeCost;
+                healthUpgradeCost *= healthUpgradeCostIncrement;
+                playerHealth *= healthIncrementPerUpgrade;
+                playerHealth += 20;
+                currentHealthUpgradeCount++;
+
+                if (currentHealthUpgradeCount < maxHealthUpgradeCount)
                 {
-                    gameMoney -= healthUpgradeCost;
-                    healthUpgradeCost *= 1.2;
-                    playerHealth += 20;
-					healthUpgradeButtonCost.setString(std::to_string(static_cast<int>(healthUpgradeCost)));
+                    healthUpgradeButtonCost.setString(std::to_string(static_cast<int>(healthUpgradeCost)));
                 }
-            }
-            else if (movementSpeedUpgradeButton.getGlobalBounds().contains(mousePos) || movementSpeedUpgradeButtonCost.getGlobalBounds().contains(mousePos))
-            {
-                if (gameMoney >= movementSpeedUpgradeCost) 
+                else
                 {
-                    gameMoney -= movementSpeedUpgradeCost;
-                    movementSpeedUpgradeCost *= 1.2;
-                    playerSpeed += 50;
-					movementSpeedUpgradeButtonCost.setString(std::to_string(static_cast<int>(movementSpeedUpgradeCost)));
+                    healthUpgradeButtonCost.setString("MAX");
+                }      
+            }
+
+            // If movement upgrade is clicked
+            else if ((movementSpeedUpgradeButton.getGlobalBounds().contains(mousePos) 
+                || movementSpeedUpgradeButtonCost.getGlobalBounds().contains(mousePos))
+                && gameMoney >= movementSpeedUpgradeCost 
+                && currentMovementSpeedUpgradeCount < maxMovementSpeedUpgradeCount) 
+            {
+                gameMoney -= movementSpeedUpgradeCost;
+                movementSpeedUpgradeCost *= movementSpeedUpgradeCostIncrement;
+                playerMovementSpeed *= movementSpeedIncrementPerUpgrade;
+                currentMovementSpeedUpgradeCount++;
+                if (currentMovementSpeedUpgradeCount < maxMovementSpeedUpgradeCount)
+                {
+                    movementSpeedUpgradeButtonCost.setString(std::to_string(static_cast<int>(movementSpeedUpgradeCost)));
+                }
+                else
+                {
+                    movementSpeedUpgradeButtonCost.setString("MAX");
                 }
 			}
-            else if (firingSpeedUpgradeButton.getGlobalBounds().contains(mousePos) || firingSpeedUpgradeButtonCost.getGlobalBounds().contains(mousePos))
+
+            // If firing upgrade is clicked
+            else if ((firingSpeedUpgradeButton.getGlobalBounds().contains(mousePos) 
+                || firingSpeedUpgradeButtonCost.getGlobalBounds().contains(mousePos))
+                && gameMoney >= firingSpeedUpgradeCost 
+                && currentFiringSpeedUpgradeCount < maxFiringSpeedUpgradeCount) 
             {
-                if (gameMoney >= firingSpeedUpgradeCost) 
+                gameMoney -= firingSpeedUpgradeCost;
+                firingSpeedUpgradeCost *= firingSpeedUpgradeCostIncrement;
+                bulletSpawnTimerMax /= firingSpeedIncrementPerUpgrade;
+                currentFiringSpeedUpgradeCount++;
+                if (currentFiringSpeedUpgradeCount < maxFiringSpeedUpgradeCount)
                 {
-                    gameMoney -= firingSpeedUpgradeCost;
-                    firingSpeedUpgradeCost *= 1.2;
-                    bulletSpawnTimerMax *= .5f;
-					firingSpeedUpgradeButtonCost.setString(std::to_string(static_cast<int>(firingSpeedUpgradeCost)));
+                    firingSpeedUpgradeButtonCost.setString(std::to_string(static_cast<int>(firingSpeedUpgradeCost)));
                 }
+                else
+                {
+                    firingSpeedUpgradeButtonCost.setString("MAX");
+                }  
             }
+
+            // If triple shot upgrade is clicked
+            else if ((tripleShotUpgradeButton.getGlobalBounds().contains(mousePos) 
+                || tripleShotUpgradeButtonCost.getGlobalBounds().contains(mousePos))
+                && gameMoney >= tripleShotUpgradeCost 
+                && !isTripleShotBought)
+            {
+                gameMoney -= tripleShotUpgradeCost;
+                isTripleShotBought = true;    
+                tripleShotUpgradeButtonCost.setString("MAX");
+            }
+
+            // If explosive shot upgrade is clicked
+            else if ((explosiveShotUpgradeButton.getGlobalBounds().contains(mousePos) 
+                || explosiveShotUpgradeButtonCost.getGlobalBounds().contains(mousePos))
+                && gameMoney >= explosiveShotUpgradeCost 
+                && !isExplosiveShotBought)
+            {
+                gameMoney -= explosiveShotUpgradeCost;
+                isExplosiveShotBought = true;  
+                explosiveShotUpgradeButtonCost.setString("MAX");
+            }
+
+            // If piercing shot upgrade is clicked
+            else if ((piercingShotUpgradeButton.getGlobalBounds().contains(mousePos) 
+                || piercingShotUpgradeButtonCost.getGlobalBounds().contains(mousePos))
+                && gameMoney >= piercingShotUpgradeCost 
+                && !isPiercingShotBought)
+            {
+                gameMoney -= piercingShotUpgradeCost;
+                isPiercingShotBought = true; 
+                piercingShotUpgradeButtonCost.setString("MAX");
+            }
+
         }
         firingSpeedUpgradeButton.setString("Reduce Firing Cooldown(" + std::to_string(static_cast<int>(bulletSpawnTimerMax * 1000)) + " ms)");
-        movementSpeedUpgradeButton.setString("Upgrade Movement Speed(" + std::to_string(static_cast<int>(playerSpeed)) + ")");
+        movementSpeedUpgradeButton.setString("Upgrade Movement Speed(" + std::to_string(static_cast<int>(playerMovementSpeed)) + ")");
         healthUpgradeButton.setString("Upgrade Health(" + std::to_string(static_cast<int>(playerHealth)) + ")");    
     }
+
+    // --- Highlighting upgrade buttons ---
 	sf::Vector2f mousePos(static_cast<float>(sf::Mouse::getPosition(window).x), static_cast<float>(sf::Mouse::getPosition(window).y));
-	if ((healthUpgradeButton.getGlobalBounds().contains(mousePos) 
+	
+    // health upgrade button
+    if ((healthUpgradeButton.getGlobalBounds().contains(mousePos) 
         || healthUpgradeButtonCost.getGlobalBounds().contains(mousePos)) 
-        && gameMoney >= healthUpgradeCost)
+        && gameMoney >= healthUpgradeCost
+        && currentHealthUpgradeCount < maxHealthUpgradeCount)
 	{
 		healthUpgradeButton.setOutlineColor(sf::Color::Green);
 	}
-	else if(gameMoney >= healthUpgradeCost)
+	else if(gameMoney >= healthUpgradeCost && currentHealthUpgradeCount < maxHealthUpgradeCount)
 	{
 		healthUpgradeButton.setOutlineColor(sf::Color::White);
 	}
@@ -356,13 +426,16 @@ void Game::handleShopInput(float deltaTime)
 	{
 		healthUpgradeButton.setOutlineColor(sf::Color::Red);
 	}
+
+    //movement upgrade button
 	if ((movementSpeedUpgradeButton.getGlobalBounds().contains(mousePos)
 		|| movementSpeedUpgradeButtonCost.getGlobalBounds().contains(mousePos))
-		&& gameMoney >= movementSpeedUpgradeCost)
+		&& gameMoney >= movementSpeedUpgradeCost
+        && currentMovementSpeedUpgradeCount < maxMovementSpeedUpgradeCount)
 	{
 		movementSpeedUpgradeButton.setOutlineColor(sf::Color::Green);
 	}
-	else if (gameMoney >= movementSpeedUpgradeCost)
+	else if (gameMoney >= movementSpeedUpgradeCost && currentMovementSpeedUpgradeCount < maxMovementSpeedUpgradeCount)
 	{
 		movementSpeedUpgradeButton.setOutlineColor(sf::Color::White);
 	}
@@ -370,13 +443,16 @@ void Game::handleShopInput(float deltaTime)
 	{
 		movementSpeedUpgradeButton.setOutlineColor(sf::Color::Red);
 	}
-	if ((firingSpeedUpgradeButton.getGlobalBounds().contains(mousePos)
+	
+    //firing speed upgrade button
+    if ((firingSpeedUpgradeButton.getGlobalBounds().contains(mousePos)
 		|| firingSpeedUpgradeButtonCost.getGlobalBounds().contains(mousePos))
-		&& gameMoney >= firingSpeedUpgradeCost)
+		&& gameMoney >= firingSpeedUpgradeCost
+        && currentFiringSpeedUpgradeCount < maxFiringSpeedUpgradeCount)
 	{
 		firingSpeedUpgradeButton.setOutlineColor(sf::Color::Green);
 	}
-	else if (gameMoney >= firingSpeedUpgradeCost)
+	else if (gameMoney >= firingSpeedUpgradeCost && currentFiringSpeedUpgradeCount < maxFiringSpeedUpgradeCount)
 	{
 		firingSpeedUpgradeButton.setOutlineColor(sf::Color::White);
 	}
@@ -384,10 +460,65 @@ void Game::handleShopInput(float deltaTime)
 	{
 		firingSpeedUpgradeButton.setOutlineColor(sf::Color::Red);
 	}
+
+    //triple shot upgrade button
+    if ((tripleShotUpgradeButton.getGlobalBounds().contains(mousePos)
+        || tripleShotUpgradeButtonCost.getGlobalBounds().contains(mousePos))
+        && gameMoney >= tripleShotUpgradeCost
+        && !isTripleShotBought)
+    {
+        tripleShotUpgradeButton.setOutlineColor(sf::Color::Green);
+    }
+    else if (gameMoney >= tripleShotUpgradeCost && !isTripleShotBought)
+    {
+        tripleShotUpgradeButton.setOutlineColor(sf::Color::White);
+    }
+    else
+    {
+        tripleShotUpgradeButton.setOutlineColor(sf::Color::Red);
+    }
+
+    //explosive shot upgrade button
+    if ((explosiveShotUpgradeButton.getGlobalBounds().contains(mousePos)
+        || explosiveShotUpgradeButtonCost.getGlobalBounds().contains(mousePos))
+        && gameMoney >= explosiveShotUpgradeCost
+        && !isExplosiveShotBought)
+    {
+        explosiveShotUpgradeButton.setOutlineColor(sf::Color::Green);
+    }
+    else if (gameMoney >= explosiveShotUpgradeCost && !isExplosiveShotBought)
+    {
+        explosiveShotUpgradeButton.setOutlineColor(sf::Color::White);
+    }
+    else
+    {
+        explosiveShotUpgradeButton.setOutlineColor(sf::Color::Red);
+    }
+
+    // piercing shot upgrade button
+    if ((piercingShotUpgradeButton.getGlobalBounds().contains(mousePos)
+        || piercingShotUpgradeButtonCost.getGlobalBounds().contains(mousePos))
+        && gameMoney >= piercingShotUpgradeCost
+        && !isPiercingShotBought)
+    {
+        piercingShotUpgradeButton.setOutlineColor(sf::Color::Green);
+    }
+    else if (gameMoney >= piercingShotUpgradeCost && !isPiercingShotBought) 
+    {
+        piercingShotUpgradeButton.setOutlineColor(sf::Color::White);
+    }
+    else
+    {
+        piercingShotUpgradeButton.setOutlineColor(sf::Color::Red);
+    }
+
+    // shop panel opening cooldown
     if (shopOpeningCooldown < globalPanelOpeningCooldownMax)
     {
         shopOpeningCooldown += deltaTime;
     }
+
+    // updating
 	updateMoneyText();
     updateHealthBar();
 }
@@ -422,7 +553,7 @@ void Game::handleLevelInput()
                 difficulty = 1.f;
                 winningSurvivalTime = 70.f;
                 continueAvailable = true;
-                resetGameSettings();
+                setDefaultGameSettings();
                 state = GameState::PLAY;
             }
             if (Ad::adList[1].body.getGlobalBounds().contains(mousePos))
@@ -430,7 +561,7 @@ void Game::handleLevelInput()
                 difficulty = 2.f;
                 winningSurvivalTime = 70.f;
                 continueAvailable = true;
-                resetGameSettings();
+                setDefaultGameSettings();
                 state = GameState::PLAY;
             }
             if (Ad::adList[2].body.getGlobalBounds().contains(mousePos))
@@ -438,7 +569,7 @@ void Game::handleLevelInput()
                 difficulty = 3.f;
                 winningSurvivalTime = 70.f;
                 continueAvailable = true;
-                resetGameSettings();
+                setDefaultGameSettings();
                 state = GameState::PLAY;
             }
             if (Ad::adList[3].body.getGlobalBounds().contains(mousePos))
@@ -446,7 +577,7 @@ void Game::handleLevelInput()
                 difficulty = 3.f;
                 winningSurvivalTime = std::numeric_limits<float>::max();
                 continueAvailable = true;
-                resetGameSettings();
+                setDefaultGameSettings();
                 state = GameState::PLAY;
             }
         }
@@ -651,94 +782,36 @@ void Game::handleGameInput(float deltaTime)
 
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::A)) 
     {
-        player.move(-playerSpeed * deltaTime, 0.0f);
+        player.move(-playerMovementSpeed * deltaTime, 0.0f);
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::S))
     {
-        player.move(0.0f, playerSpeed * deltaTime);
+        player.move(0.0f, playerMovementSpeed * deltaTime);
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::D)) 
     {
-        player.move(playerSpeed * deltaTime, 0.0f);
+        player.move(playerMovementSpeed * deltaTime, 0.0f);
     }
     if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::W))
     {
-        player.move(0.0f, -playerSpeed * deltaTime);
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num1))
-    {
-        shotMode = ShotMode::RAPID;
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num2))
-    {
-        shotMode = ShotMode::SHOTGUN;
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num3))
-    {
-        shotMode = ShotMode::BOMB;
-    }
-    if (sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Num4))
-    {
-        shotMode = ShotMode::PIERCING;
+        player.move(0.0f, -playerMovementSpeed * deltaTime);
     }
 
-    if (sf::Mouse::isButtonPressed(sf::Mouse::Left)) 
+    if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
     {
-        // Defining bullets spawn position for ALL CASES
+        if (bulletSpawnTimer >= bulletSpawnTimerMax)
+        {
+
         sf::Vector2f spawnPos(
             player.getPosition().x + (playerSize - defaultBulletSize) / 2,
             player.getPosition().y + (playerSize - defaultBulletSize) / 2
         );
 
-        switch (shotMode)
-        {
-            case Game::ShotMode::RAPID:
-                bulletSpawnTimer += Bullet::trySpawnRapid(
-                    spawnPos,
-                    window,
-                    bulletSpawnTimer,
-                    bulletSpawnTimerMax,
-                    deltaTime
-                );
-                break;
-
-
-            case Game::ShotMode::SHOTGUN:
-                bulletSpawnTimer += Bullet::trySpawnShotgun(
-                    spawnPos,
-                    window,
-                    bulletSpawnTimer,
-                    bulletSpawnTimerMax,
-                    deltaTime
-                );
-                break;
-
-
-            case Game::ShotMode::BOMB:
-                bulletSpawnTimer += Bullet::trySpawnBomb(
-                    spawnPos,
-                    window, bulletSpawnTimer,
-                    bulletSpawnTimerMax,
-                    deltaTime
-                );
-                break;
-
-
-            case Game::ShotMode::PIERCING:
-                bulletSpawnTimer += Bullet::trySpawnPiercing(
-                    spawnPos,
-                    window,
-                    bulletSpawnTimer,
-                    bulletSpawnTimerMax,
-                    deltaTime
-                );
-                break;
-
-
-            default:
-                break;
+        Bullet::spawn(spawnPos, window, isTripleShotBought, isExplosiveShotBought, isPiercingShotBought);
+        bulletSpawnTimer -= bulletSpawnTimerMax;
         }
     }
+
 	if (shopOpeningCooldown < globalPanelOpeningCooldownMax)
 	{
 		shopOpeningCooldown += deltaTime;
@@ -988,7 +1061,7 @@ void Game::initializeButtons()
 
     // Movement Speed Upgrade button (Shop)
     movementSpeedUpgradeButton.setFont(font);
-    movementSpeedUpgradeButton.setString("Upgrade Movement Speed(" + std::to_string(static_cast<int>(playerSpeed)) + ")");
+    movementSpeedUpgradeButton.setString("Upgrade Movement Speed(" + std::to_string(static_cast<int>(playerMovementSpeed)) + ")");
     movementSpeedUpgradeButton.setCharacterSize(50);
     movementSpeedUpgradeButton.setFillColor(sf::Color::White);
     movementSpeedUpgradeButton.setOutlineThickness(1);
@@ -1045,6 +1118,80 @@ void Game::initializeButtons()
         SCREEN_WIDTH / 5 * 4,
         SCREEN_HEIGHT / 2 + 100
     );
+    
+
+    // tripleShotUpgradeButton (Shop)
+    tripleShotUpgradeButton.setFont(font);
+    tripleShotUpgradeButton.setString("Triple Shot");
+    tripleShotUpgradeButton.setCharacterSize(50);
+    tripleShotUpgradeButton.setFillColor(sf::Color::White);
+    tripleShotUpgradeButton.setOutlineThickness(1);
+    tripleShotUpgradeButton.setOutlineColor(sf::Color::White);
+    tripleShotUpgradeButton.setPosition(
+        SCREEN_WIDTH / 5,
+        SCREEN_HEIGHT / 2 + 150
+    );
+
+    // explosiveShotUpgradeButton (Shop)
+    explosiveShotUpgradeButton.setFont(font);
+    explosiveShotUpgradeButton.setString("Explosive Shot");
+    explosiveShotUpgradeButton.setCharacterSize(50);
+    explosiveShotUpgradeButton.setFillColor(sf::Color::White);
+    explosiveShotUpgradeButton.setOutlineThickness(1);
+    explosiveShotUpgradeButton.setOutlineColor(sf::Color::White);
+    explosiveShotUpgradeButton.setPosition(
+        SCREEN_WIDTH / 5,
+        SCREEN_HEIGHT / 2 + 200
+    );
+
+    // piercingShotUpgradeButton  (Shop)
+    piercingShotUpgradeButton.setFont(font);
+    piercingShotUpgradeButton.setString("Piercing Shot");
+    piercingShotUpgradeButton.setCharacterSize(50);
+    piercingShotUpgradeButton.setFillColor(sf::Color::White);
+    piercingShotUpgradeButton.setOutlineThickness(1);
+    piercingShotUpgradeButton.setOutlineColor(sf::Color::White);
+    piercingShotUpgradeButton.setPosition(
+        SCREEN_WIDTH / 5,
+        SCREEN_HEIGHT / 2 + 250
+    );
+
+    // tripleShotUpgradeButtonCost (Shop)
+    tripleShotUpgradeButtonCost.setFont(font);
+    tripleShotUpgradeButtonCost.setString(std::to_string(tripleShotUpgradeCost));
+    tripleShotUpgradeButtonCost.setCharacterSize(50);
+    tripleShotUpgradeButtonCost.setFillColor(sf::Color::Yellow);
+    tripleShotUpgradeButtonCost.setOutlineThickness(2);
+    tripleShotUpgradeButtonCost.setOutlineColor(sf::Color::White);
+    tripleShotUpgradeButtonCost.setPosition(
+        SCREEN_WIDTH / 5 * 4,
+        SCREEN_HEIGHT / 2 + 150
+    );
+
+    // explosiveShotUpgradeButtonCost  (Shop)
+    explosiveShotUpgradeButtonCost.setFont(font);
+    explosiveShotUpgradeButtonCost.setString(std::to_string(explosiveShotUpgradeCost));
+    explosiveShotUpgradeButtonCost.setCharacterSize(50);
+    explosiveShotUpgradeButtonCost.setFillColor(sf::Color::Yellow);
+    explosiveShotUpgradeButtonCost.setOutlineThickness(2);
+    explosiveShotUpgradeButtonCost.setOutlineColor(sf::Color::White);
+    explosiveShotUpgradeButtonCost.setPosition(
+        SCREEN_WIDTH / 5 * 4,
+        SCREEN_HEIGHT / 2 + 200
+    );
+ 
+    // piercingShotUpgradeButtonCost (Shop)
+    piercingShotUpgradeButtonCost.setFont(font);
+    piercingShotUpgradeButtonCost.setString(std::to_string(piercingShotUpgradeCost));
+    piercingShotUpgradeButtonCost.setCharacterSize(50);
+    piercingShotUpgradeButtonCost.setFillColor(sf::Color::Yellow);
+    piercingShotUpgradeButtonCost.setOutlineThickness(2);
+    piercingShotUpgradeButtonCost.setOutlineColor(sf::Color::White);
+    piercingShotUpgradeButtonCost.setPosition(
+        SCREEN_WIDTH / 5 * 4,
+        SCREEN_HEIGHT / 2 + 250
+    );
+     
 
     // Back button (Level)
     levelBackButton.setFont(font);
@@ -1486,18 +1633,17 @@ void Game::setDefaultGMShopObjectPositions()
     );
 }
 
-
 // -------------------------------------------- Updating and Drawing health bar --------------------------------------------
 
 void Game::updateHealthBar()
 {
-    if (playerHealth > defaultPlayerHealth)
+    if (playerHealth > startingPlayerHealth)
     {
         healthBar.setSize(sf::Vector2f(healthBarBorder.getSize()));
     }
     else
     {
-        healthBar.setSize(sf::Vector2f(manaBarBorder.getSize().x * (playerHealth / defaultPlayerHealth), healthBar.getSize().y));
+        healthBar.setSize(sf::Vector2f(manaBarBorder.getSize().x * (playerHealth / startingPlayerHealth), healthBar.getSize().y));
     }
     healthBar.setFillColor(sf::Color::Green);
     healthText.setString(std::to_string(static_cast<int>(playerHealth)));
@@ -1586,16 +1732,36 @@ void Game::activateManaAbility()
 }
 // -------------------------------------------- Resetting Game settings --------------------------------------------
 
-void Game::resetGameSettings()
+void Game::setDefaultGameSettings()
 {
+    isTripleShotBought = false;
+    isExplosiveShotBought = false;
+    isPiercingShotBought = false;
+    tripleShotUpgradeCost = 100;
+    explosiveShotUpgradeCost = 100;
+    piercingShotUpgradeCost = 100;
+    currentHealthUpgradeCount = 0;
+    currentMovementSpeedUpgradeCount = 0;
+    currentFiringSpeedUpgradeCount = 0;
+    maxHealthUpgradeCount = 10; 
+    maxMovementSpeedUpgradeCount = 10;
+    maxFiringSpeedUpgradeCount = 10;
+    startingPlayerHealth = 100.f;
+    startingPlayerSpeed = 100.f;
+    startingPlayerManaMax = 100.f;
+    playerHealth = startingPlayerHealth;
+    playerMovementSpeed = startingPlayerSpeed;
+    maxPlayerMana = startingPlayerManaMax;
+    healthUpgradeCostIncrement = 1.2f;
+    movementSpeedUpgradeCostIncrement = 1.2f;
+    firingSpeedUpgradeCostIncrement = 1.2f;
+    healthIncrementPerUpgrade = 1.05f;
+    movementSpeedIncrementPerUpgrade = 1.2f;
+    firingSpeedIncrementPerUpgrade = 1.7;
     gameTime = .0f;
     borderDamage = 1.0f;
-    playerHealth = defaultPlayerHealth;
-    playerSpeed = defaultPlayerSpeed;
-    gameMoney = 0;
+    gameMoney = 10000;
     playerMana = 0;
-    maxPlayerMana = defaultPlayerManaMax;
-    enemiesPerWave = 3;
     enemySpawnTimer = 9.f;
     enemySpawnTimerMax = 10.f;
     bulletSpawnTimer = 0.f;
@@ -1638,9 +1804,17 @@ void Game::update(float deltaTime)
     updateMoneyText();
     enemySpawnTimerMax = 4.f - 3 * (gameTime / 60.f);
 
-    if (gameTime < winningSurvivalTime)
+    if (enemySpawnTimer >= enemySpawnTimerMax)
     {
-        enemySpawnTimer += Enemy::trySpawn(enemySpawnTimer, enemySpawnTimerMax, deltaTime, enemiesPerWave, difficulty, gameTime);
+        if (gameTime < winningSurvivalTime)
+        {
+            Enemy::trySpawn(enemiesPerWave, difficulty, gameTime);
+            enemySpawnTimer -= enemySpawnTimerMax;
+        }
+    }
+    else
+    {
+        enemySpawnTimer += deltaTime;
     }
 
     if (bossSpawnTimer >= bossSpawnTimerMax)
@@ -1665,13 +1839,13 @@ void Game::update(float deltaTime)
         state = GameState::GAME_OVER;
     }
 
+    bulletSpawnTimer += deltaTime;
     Bullet::update(deltaTime);
     Bullet::checkRemove(window);
-    Bullet::checkCollisions(window);
+    playerMana += Bullet::checkCollisions(window);
+    Bullet::hitRemove();
     gameMoney += Enemy::hitRemove();
 
-    // SALABOT MANAS SKAITĪŠANU (NESTRĀDĀ AR PIERCING BULLETS)
-    playerMana += Bullet::hitRemove();
 
 	if (playerMana > maxPlayerMana)
 	{
@@ -1808,13 +1982,23 @@ void Game::renderShop()
 
     window.draw(background);
     window.draw(shopTitle);
+    window.draw(closeInfoText);
+
     window.draw(healthUpgradeButton);
     window.draw(movementSpeedUpgradeButton);
     window.draw(firingSpeedUpgradeButton);
+
 	window.draw(healthUpgradeButtonCost);
 	window.draw(movementSpeedUpgradeButtonCost);
 	window.draw(firingSpeedUpgradeButtonCost);
-    window.draw(closeInfoText);
+
+    window.draw(tripleShotUpgradeButton);
+    window.draw(explosiveShotUpgradeButton);
+    window.draw(piercingShotUpgradeButton);
+
+    window.draw(tripleShotUpgradeButtonCost);
+    window.draw(explosiveShotUpgradeButtonCost);
+    window.draw(piercingShotUpgradeButtonCost);
 
     drawHealthBar(window);
     drawManaBar(window);

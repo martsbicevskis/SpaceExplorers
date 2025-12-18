@@ -85,8 +85,9 @@ void Bullet::checkRemove(const sf::RenderWindow& window)
 }
 
 //checking for collisions with enemies
-void Bullet::checkCollisions(const sf::RenderWindow& window)
+int Bullet::checkCollisions(const sf::RenderWindow& window)
 {
+    int addedMana = 0;
     for (auto& e : Enemy::enemyList)
     {
         for (auto& b : Bullet::bulletList)
@@ -94,17 +95,23 @@ void Bullet::checkCollisions(const sf::RenderWindow& window)
             float xDistance = e.body.getPosition().x - b.body.getPosition().x;
             float yDistance = e.body.getPosition().y - b.body.getPosition().y;
 
+
             if ((xDistance < b.body.getRadius() * 2 && xDistance > -e.body.getSize().x) &&
                 (yDistance < b.body.getRadius() * 2 && yDistance > -e.body.getSize().y))
             {
                 if (std::find(b.hitList.begin(), b.hitList.end(), &e) == b.hitList.end())
                 {
-                    e.takeDamage(10.0f);
+                    addedMana++;
+                    if (b.isExplosive)
+                    {
+                        explode(sf::Vector2f(b.body.getPosition().x + b.body.getRadius(), b.body.getPosition().y + b.body.getRadius()));
+                    }
+                    else
+                    {
+                        e.takeDamage(10.0f);
+                    }
                 }
-                if (b.isExplosive)
-                {
-                    explode(sf::Vector2f(b.body.getPosition().x + b.body.getRadius(), b.body.getPosition().y + b.body.getRadius()));
-                }
+
                 if (!b.isPiercing)
                 {
                 b.body.setFillColor(sf::Color::Transparent);
@@ -118,28 +125,67 @@ void Bullet::checkCollisions(const sf::RenderWindow& window)
             }
         }
     }
-
+    return addedMana;
 }
 
 //removing bullets if they hit enemies
-int Bullet::hitRemove()
+void Bullet::hitRemove()
 {
     int removedCount = 0;
 
     auto it = std::remove_if(bulletList.begin(), bulletList.end(),
         [&removedCount](const Bullet& bullet) {
-            if (bullet.body.getFillColor() == sf::Color::Transparent) {
-                ++removedCount;
+            if (bullet.body.getFillColor() == sf::Color::Transparent) 
+            {
                 return true;
             }
             return false;
         });
     bulletList.erase(it, bulletList.end());
-
-    return removedCount;
 }
 
-//updating the bullet spawn timer and spawning bullets
+
+
+void Bullet::explode(sf::Vector2f location)
+{
+    for (auto& e : Enemy::enemyList)
+    {
+
+        float xDistance = e.body.getPosition().x + e.body.getSize().x / 2 - location.x;
+        float yDistance = e.body.getPosition().y + e.body.getSize().y / 2 - location.y;
+
+		if (sqrt(xDistance * xDistance + yDistance * yDistance) < 100)
+		{
+			e.takeDamage(10.0f);
+		}
+
+    }
+}
+
+//checking if the bullet is inside the window
+bool Bullet::checkInsideBounds(const sf::RenderWindow& window) const
+{
+    sf::Vector2f position = body.getPosition();
+
+    return (position.x < 0 || position.x > window.getSize().x ||
+        position.y < 0 || position.y > window.getSize().y);
+}
+
+void Bullet::spawn(const sf::Vector2f& position, sf::RenderWindow& window, bool isTripleShotUpgradeBought, bool isExplosiveShotUpgradeBought, bool isPiercingShotUpgradeBought)
+{
+    new Bullet(1000.f, 10.f, sf::Vector2f(position), static_cast<sf::Vector2f>(sf::Mouse::getPosition(window)), isExplosiveShotUpgradeBought, isPiercingShotUpgradeBought);
+    if (isTripleShotUpgradeBought)
+    {
+        new Bullet(1000.f, 10.f, sf::Vector2f(position), sf::Vector2f(sf::Mouse::getPosition(window).x - Game::SCREEN_WIDTH / 20, sf::Mouse::getPosition(window).y - Game::SCREEN_HEIGHT / 20), isExplosiveShotUpgradeBought, isPiercingShotUpgradeBought);
+        new Bullet(1000.f, 10.f, sf::Vector2f(position), sf::Vector2f(sf::Mouse::getPosition(window).x + Game::SCREEN_WIDTH / 20, sf::Mouse::getPosition(window).y + Game::SCREEN_HEIGHT / 20), isExplosiveShotUpgradeBought, isPiercingShotUpgradeBought);
+    }
+}
+
+
+/*
+* 
+* ------- OLD BULLET SPAWNING FUNCTIONS -------
+* 
 float Bullet::trySpawnRapid(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime)
 {
     if (bulletSpawnTimer >= bulletSpawnTimerMax)
@@ -194,28 +240,4 @@ float Bullet::trySpawnPiercing(sf::Vector2f playerLocation, sf::RenderWindow& wi
         return deltatime;
     }
 }
-
-void Bullet::explode(sf::Vector2f location)
-{
-    for (auto& e : Enemy::enemyList)
-    {
-
-        float xDistance = e.body.getPosition().x + e.body.getSize().x / 2 - location.x;
-        float yDistance = e.body.getPosition().y + e.body.getSize().y / 2 - location.y;
-
-		if (sqrt(xDistance * xDistance + yDistance * yDistance) < 100)
-		{
-			e.takeDamage(20.0f);
-		}
-
-    }
-}
-
-//checking if the bullet is inside the window
-bool Bullet::checkInsideBounds(const sf::RenderWindow& window) const
-{
-    sf::Vector2f position = body.getPosition();
-
-    return (position.x < 0 || position.x > window.getSize().x ||
-        position.y < 0 || position.y > window.getSize().y);
-}
+*/

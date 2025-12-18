@@ -14,12 +14,9 @@ public:
     static void update(float deltaTime);
     static void drawAll(sf::RenderWindow& window);
     static void checkRemove(const sf::RenderWindow& window);
-    static void checkCollisions(const sf::RenderWindow& window);
-    static int hitRemove();
-    static float trySpawnRapid(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime);
-    static float trySpawnShotgun(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime);
-    static float trySpawnBomb(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime);
-    static float trySpawnPiercing(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime);
+    static int checkCollisions(const sf::RenderWindow& window);
+    static void hitRemove();
+    static void spawn(const sf::Vector2f& position, sf::RenderWindow& window, bool isTripleShotUpgradeBought, bool isExplosiveShotUpgradeBought, bool isPiercingShotUpgradeBought);
 
     static void explode(sf::Vector2f location);
     void move(float deltaTime);
@@ -43,3 +40,15 @@ private:
 	sf::Texture bulletTexture;
     std::vector<Enemy*> hitList;
 };
+
+
+/*
+* 
+* ------- OLD BULLET SPAWNING FUNCTIONS -------
+*
+    static float trySpawnRapid(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime);
+    static float trySpawnShotgun(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime);
+    static float trySpawnBomb(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime);
+    static float trySpawnPiercing(sf::Vector2f playerLocation, sf::RenderWindow& window, float bulletSpawnTimer, float bulletSpawnTimerMax, float deltatime);
+    
+*/
